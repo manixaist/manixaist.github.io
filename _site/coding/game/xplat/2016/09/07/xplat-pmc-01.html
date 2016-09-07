@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta content="manixaist.github.io" property="og:site_name">
+
+  <meta content="Cross Platform Game - 01" property="og:title">
+
+
+  <meta content="article" property="og:type">
+
+
+  <meta content="<h1>Developer Journal</h1><h4>Github pages for coding projects</h4><a href='http://xkcd.com/1477/'><img src='http://imgs.xkcd.com/comics/operating_systems.png'/></a> " property="og:description">
+
+
+  <meta content="http://manixaist.github.io/coding/game/xplat/2016/09/07/xplat-pmc-01.html" property="og:url">
+
+
+  <meta content="2016-09-07T09:31:43-07:00" property="article:published_time">
+  <meta content="http://manixaist.github.io/about/" property="article:author">
+
+
+  <meta property="og:image" content="">
+
+
+  
+  <meta content="coding" property="article:section">
+  
+
+
+  
+
+  <title>Cross Platform Game - 01</title>
+  <meta name="description" content="Cross Platform Game - 01Cross platform development is something I have wanted to try for a while, and what better way than with a simple game?  I’ve chosen t...">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/css/main.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+  <link href='https://fonts.googleapis.com/css?family=PT+Sans' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Mono' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,200,300,500,600,700,900' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Gentium+Basic:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Alegreya:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300,500,700' rel='stylesheet' type='text/css'>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-hQpvDQiCJaD2H465dQfA717v7lu5qHWtDbWNPvaTJ0ID5xnPUlVXnKzq7b8YUkbN" crossorigin="anonymous">
+  <link rel="canonical" href="http://manixaist.github.io/coding/game/xplat/2016/09/07/xplat-pmc-01.html">
+  <link rel="alternate" type="application/rss+xml" title="manixaist.github.io" href="http://manixaist.github.io/feed.xml">
+</head>
+
+
+  <body>
+<section>
+<nav class="navbar navbar-default navbar-fixed-top">
+
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">manixaist.github.io</a>
+    </div>
+
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        
+        
+
+        
+        
+
+        
+        
+
+        
+
+
+      </ul>
+
+    <!--  <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Know More!</a></li>
+
+      </ul>-->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</section>
+
+<section>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="jumbotron">
+    <div class="container">
+      <h1 class="post-title-main" itemprop="name headline">Cross Platform Game - 01</h1>
+      <p class="post-meta"><time datetime="2016-09-07T09:31:43-07:00" itemprop="datePublished">Sep 7, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">manixaist</span></span></p>
+      
+    </div>
+
+</div>
+
+
+  <div class="post-content container" itemprop="articleBody">
+    <h1 id="cross-platform-game---01">Cross Platform Game - 01</h1>
+<p>Cross platform development is something I have wanted to try for a while, and what better way than with a simple game?  I’ve chosen to make a Pac-Man clone, and over the next several posts will flesh it out further and further - ensuring it runs on both Windows and Linux.</p>
+
+<p>This will not be a tutorial on a specific API (e.g. SDL) though I will be using SDL2 for the cross platform encapsulation and I will show you everything you need to get setup and started.</p>
+
+<hr />
+
+<h2 id="goal-for-today">Goal for Today</h2>
+<p>Produce a working exe on both Windows and Linux with the proper SDL2 libraries installed and linking.</p>
+
+<h3 id="assumptions">Assumptions</h3>
+<p>My posts will assume a few things</p>
+<ul>
+  <li>Basic understanding of Git/Github</li>
+  <li>Basic C/C++ coding skills</li>
+  <li>X64 capable machine, and OS installed.</li>
+  <li>You can build x86 instead, but you will need to adjust some steps to do this on a x64 machine, and I will assume you know how to do that if you’re trying.</li>
+</ul>
+
+<h4 id="example-code">Example Code</h4>
+<p><a href="https://github.com/manixaist/xplat-pmc-tutorial-01">Github repo</a></p>
+
+<h2 id="windows">Windows</h2>
+<p>I am running on Windows 10 Pro x64 machine.  Any decently recent version of Windows should work just fine.</p>
+
+<p>This is what you’re going to need at a minimum, and it’s all free even on Windows.</p>
+
+<ul>
+  <li><a href="http://www.visualstudio.com/">Visual Studio</a>: download the “Community 2015” version and install it. (Assuming you don’t already have a version of Visual Studio.)</li>
+  <li><a href="https://git-scm.com/">Git-scm</a>: install for Windows (I used 2.10.0 and the default install options.)</li>
+  <li><a href="https://www.libsdl.org/download-2.0.php">SDL</a>: download the zip or tarball.  Unzip the file and place the folder somewhere accessible by your code (it has the headers and libs e.g. “../SDL2-2.0.4/Include”.)</li>
+</ul>
+
+<p>You’re going to want to place the development dlls in your system folder so they are accessible, so find the appropriate one (e.g. SDL2-2.0.4\lib\x64\SDL2.dll) and place it in %windir%\system32.  (This is where you would need to know about sysWOW64 for x86 on amd64 - but ignore it if it means nothing to you).</p>
+
+<h3 id="visual-studio-configuration">Visual Studio Configuration:</h3>
+<p>Before we start, aside from some specific naming I will use to make the git repo easier to deal with, all this entails is telling VS where to find the SDL2 APIs we just downloaded.  It’s the same basic steps to add any external library on Windows (e.g. Direct3D or your_custom_control.lib).</p>
+
+<p>Open up Visual Studio.  We will need to do some setup on the project so it can find the SDL files we’ll need such as the headers, static libs, and dlls.</p>
+
+<ul>
+  <li>Go to File-&gt;New Project</li>
+  <li>Select “Win32 Console Application”</li>
+  <li>Check “Create directory for solution”</li>
+  <li>Check “Create new Git repository”</li>
+</ul>
+
+<p>Make the name “windows” (this is the project name in the end) and the Location under your root to add “xplat-pmc-tutorial-01”.  This will make the linux side much easier.</p>
+
+<p><img src="/images/VSNewProject.png" alt="Visual Studio 2015 New Project Settings" /></p>
+
+<ul>
+  <li>Uncheck “Precompiled header”</li>
+  <li>Check “empty project”</li>
+  <li>Uncheck SDL checks (different SDL - Software development lifecycle)</li>
+</ul>
+
+<p>One the new project loads…</p>
+
+<ul>
+  <li>Right-click on the project and select “add new item”</li>
+  <li>Add main.cpp to the root of the repo (up one level from the project)</li>
+</ul>
+
+<p>Edit your main file to the following.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="c1">// main.cpp : Defines the entry point for the console application. 
+// 
+</span><span class="cp">#include &lt;SDL.h&gt; 
+</span> 
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> 
+<span class="p">{</span> 
+    <span class="n">SDL_Log</span><span class="p">(</span><span class="s">"'Sup World?</span><span class="se">\r\n</span><span class="s">"</span><span class="p">);</span> 
+    <span class="n">SDL_Delay</span><span class="p">(</span><span class="mi">5000</span><span class="p">);</span> 
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> 
+<span class="p">}</span> </code></pre></figure>
+
+<p>It won’t build yet, and you should see a bunch of red squiggles since VS can’t find those files/references.  To fix this.</p>
+
+<ul>
+  <li>Project-&gt;Properties-&gt;Configuration Properties-&gt;C++&gt;Additional Include Directories</li>
+  <li>Add “SDL2-2.0.4\Include”</li>
+  <li>Click Apply</li>
+  <li>Project-&gt;Properties-&gt;Linker-&gt;Input-&gt;Additional Dependencies</li>
+  <li>Add “SDL2.lib and SDL2main.lib”</li>
+  <li>Click Apply</li>
+  <li>Project-&gt;Properties-&gt;Linker-&gt;General-&gt;Additional Library Directories</li>
+  <li>Add your path to the libs (e.g. “..\SDL2-2.0.4\lib\x64)</li>
+  <li>Click Ok</li>
+</ul>
+
+<p>I won’t post every pic, they follow a pattern here, but here is an example of the lib paths.</p>
+
+<p><img src="/images/VSLibPaths.png" alt="Visual Studio 2015 New Project Settings" /></p>
+
+<p><a href="http://lazyfoo.net/tutorials/SDL/index.php">lazyfoo</a> has excellent SDL2 specific tutorials as well as more info on how to setup the depenedencies if you need another source.</p>
+
+<p>At this point your project should know how to locate the SDL headers, static libs and runtime dll for x64.  Now we’ll try and build a simple exe that links against SDL2 to prove it. If it builds and links you should be good to go.  Be sure to check you changed the main signature.  SDL requires the format above and not “int main(void).”</p>
+
+<p><img src="/images/win32out.png" alt="Running Windows Application" /></p>
+
+<p>Take a look at this line for a second.</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="n">SDL_Delay</span><span class="p">(</span><span class="mi">5000</span><span class="p">);</span> </code></pre></figure>
+
+<p>Already SDL is solving problems, if you don’t believe me google getting Sleep and sleep to work on linux/win32 :)  Commit the changed files.  VS nicely adds a bunch of stuff to your .gitignore file so you shouldn’t see anything too odd.</p>
+
+<p>At this point you can push it to Github.  I placed mine at https://github.com/manixaist/xplat-pmc-tutorial-01, but we’re not done quite yet.  On to Linux.</p>
+
+<h2 id="linux">Linux:</h2>
+<p>For the linux side I’m using Ubuntu (specifically, ubuntu-16.04.1-desktop-amd64.iso).  I chose it because…</p>
+
+<ol>
+  <li>It’s Free</li>
+  <li>It’s super easy to install</li>
+  <li>I’m not building a server</li>
+</ol>
+
+<p>I’m going to assume you can get Ubuntu installed (burn it to CD or using a USB).  I will pick up on the first logon of my new user.</p>
+
+<p>Open a terminal and create a new directory for your source.  I put mine at ~/coderoot</p>
+
+<p>For some reason, Ubuntu did not come with Git, so install it with</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">sudo apt install git </code></pre></figure>
+
+<ul>
+  <li>Open a browser (mine came with Firefox installed, use whichever you love most)</li>
+  <li>Go to <a href="https://code.visualstudio.com">Visual Studio Code</a> and click on the .deb file for Debian/Ubuntu</li>
+  <li>Open with software install</li>
+  <li>
+    <p>Click install</p>
+  </li>
+  <li>Open VS Code</li>
+  <li>Click on the extensions icon (last in list, looks like a square) and install the C/C++ extension (git history as well if you want)</li>
+  <li>Enable them once installed and VS Code will restart</li>
+</ul>
+
+<p>In the terminal</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">sudo apt install libsdl2-2.0-0 
+sudo apt install libsdl2-dev </code></pre></figure>
+
+<p>Now clone the repo we saved locally, for me this is</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">git clone https://github.com/manixaist/xplat-pmc-tutorial-01.git </code></pre></figure>
+
+<p>Add “.vscode/” and “*.exe” to .gitignore</p>
+
+<p>And now for the makefile.  I’ve tried to keep this as simple/flexible as possible for now</p>
+
+<p>In the root of the repository…</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">nano makefile </code></pre></figure>
+
+<p><a href="https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html">Excellent makefile reference btw</a></p>
+
+<figure class="highlight"><pre><code class="language-make" data-lang="make"><span class="nv">SHELL</span> <span class="o">=</span> /bin/sh 
+<span class="nl">.SUFFIXES</span><span class="o">:</span> 
+<span class="nl">.SUFFIXES</span><span class="o">:</span> <span class="nf">.cpp .o </span>
+<span class="nv">EXE_NAME</span> <span class="o">=</span> xplat-pmc-tutorial-01.exe 
+<span class="c"># Add additional .cpp/.o pairs to the MODULES List (e.g. main input graphics ...) 
+</span><span class="nv">MODULES</span> <span class="o">:=</span> main 
+<span class="c"># Generates a list of the modules with ".o" appended 
+</span><span class="nv">OBJS</span> <span class="o">:=</span> <span class="nv">$(MODULES)</span>.o 
+<span class="c"># external libraries. 
+# remember ordering is important to the linker... 
+</span><span class="nv">LIBS</span> <span class="o">:=</span> <span class="se">\ </span>
+	<span class="err">-lSDL2</span> 
+<span class="nv">REBUILDABLES</span> <span class="o">:=</span> <span class="nv">$(OBJS)</span> <span class="nv">$(EXE_NAME)</span> 
+<span class="c"># All warning, debug output, C++11, x64 
+# later we can tease out the debug 
+</span><span class="nv">CXXFLAGS</span> <span class="o">+=</span> -Wall -g -std<span class="o">=</span>c++11 -m64 
+<span class="c"># list of external paths 
+</span><span class="nv">INCLUDE_PATHS</span> <span class="o">:=</span> <span class="se">\ </span>
+	<span class="err">/usr/include/SDL2</span>  
+<span class="c"># Expands each include path above to -I/path/1 -I/path/2 ... etc 
+</span><span class="nv">INCLUDES</span> <span class="o">:=</span> -I<span class="nv">$(INCLUDE_PATHS)</span> 
+<span class="nl">all </span><span class="o">:</span> <span class="nf">$(EXE_NAME) </span>
+	<span class="nb">echo </span>All <span class="k">done</span> 
+<span class="c"># This is the linking rule, it creates the exe from the list of dependent objects 
+</span><span class="nl">$(EXE_NAME) </span><span class="o">:</span> <span class="nf">$(OBJS) </span>
+	g++ -g -o <span class="nv">$@</span> <span class="nv">$^</span> <span class="nv">$(LIBS)</span> 
+<span class="c"># Compilation rule, it matches the object's corresponding .cpp file 
+</span><span class="nl">%.o </span><span class="o">:</span> <span class="nf">%.cpp </span>
+	g++ -o <span class="nv">$@</span> -c <span class="nv">$(CXXFLAGS)</span> <span class="nv">$(INCLUDES)</span> <span class="nv">$&lt;</span> 
+<span class="nl">.PHONY </span><span class="o">:</span> <span class="nf">clean </span>
+<span class="nl">clean </span><span class="o">:</span>  
+	rm -f <span class="nv">$(REBUILDABLES)</span> 
+	<span class="err">echo Clean done </span></code></pre></figure>
+
+<p>Now you should be able to build with</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">make all </code></pre></figure>
+
+<p>Then run the local exe</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">./xplat-pmc-tutorial-01.exe </code></pre></figure>
+
+<p>And you can clean up with</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">make clean </code></pre></figure>
+
+<p><img src="/images/linuxout.png" alt="Running Linux Application" /></p>
+
+<p>Now we can push that back up and the first repo is done.  We now have common code linking to SDL2 compiling and running on both Win32 and Linux.  Note we did not touch the source file in the linux half…ok I did, but just to fix the include style from <SDL2.h> to "SDL2.h", you can this if you look at the repo history.</SDL2.h></p>
+
+<hr />
+
+<h3 id="coming-soon">Coming soon</h3>
+<p>We’ll start making it look more like a game with some tiled graphics….</p>
+
+  </div>
+
+</article>
+
+</section>
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container footer-content">
+  </div>
+</nav>
+
+  </body>
+
+</html>

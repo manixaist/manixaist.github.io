@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>manixaist.github.io</title>
+    <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects&lt;/h4&gt;&lt;a href='http://xkcd.com/1477/'&gt;&lt;img src='http://imgs.xkcd.com/comics/operating_systems.png'/&gt;&lt;/a&gt; </description>
+    <link>http://manixaist.github.io/</link>
+    <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Wed, 07 Sep 2016 16:50:39 -0700</pubDate>
+    <lastBuildDate>Wed, 07 Sep 2016 16:50:39 -0700</lastBuildDate>
+    <generator>Jekyll v3.2.1</generator>
+    
+      <item>
+        <title>Cross Platform Game - 01</title>
+        <description>&lt;h1 id=&quot;cross-platform-game---01&quot;&gt;Cross Platform Game - 01&lt;/h1&gt;
+&lt;p&gt;Cross platform development is something I have wanted to try for a while, and what better way than with a simple game?  I’ve chosen to make a Pac-Man clone, and over the next several posts will flesh it out further and further - ensuring it runs on both Windows and Linux.&lt;/p&gt;
+
+&lt;p&gt;This will not be a tutorial on a specific API (e.g. SDL) though I will be using SDL2 for the cross platform encapsulation and I will show you everything you need to get setup and started.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;goal-for-today&quot;&gt;Goal for Today&lt;/h2&gt;
+&lt;p&gt;Produce a working exe on both Windows and Linux with the proper SDL2 libraries installed and linking.&lt;/p&gt;
+
+&lt;h3 id=&quot;assumptions&quot;&gt;Assumptions&lt;/h3&gt;
+&lt;p&gt;My posts will assume a few things&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Basic understanding of Git/Github&lt;/li&gt;
+  &lt;li&gt;Basic C/C++ coding skills&lt;/li&gt;
+  &lt;li&gt;X64 capable machine, and OS installed.&lt;/li&gt;
+  &lt;li&gt;You can build x86 instead, but you will need to adjust some steps to do this on a x64 machine, and I will assume you know how to do that if you’re trying.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;example-code&quot;&gt;Example Code&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/manixaist/xplat-pmc-tutorial-01&quot;&gt;Github repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;windows&quot;&gt;Windows&lt;/h2&gt;
+&lt;p&gt;I am running on Windows 10 Pro x64 machine.  Any decently recent version of Windows should work just fine.&lt;/p&gt;
+
+&lt;p&gt;This is what you’re going to need at a minimum, and it’s all free even on Windows.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.visualstudio.com/&quot;&gt;Visual Studio&lt;/a&gt;: download the “Community 2015” version and install it. (Assuming you don’t already have a version of Visual Studio.)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/&quot;&gt;Git-scm&lt;/a&gt;: install for Windows (I used 2.10.0 and the default install options.)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.libsdl.org/download-2.0.php&quot;&gt;SDL&lt;/a&gt;: download the zip or tarball.  Unzip the file and place the folder somewhere accessible by your code (it has the headers and libs e.g. “../SDL2-2.0.4/Include”.)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You’re going to want to place the development dlls in your system folder so they are accessible, so find the appropriate one (e.g. SDL2-2.0.4\lib\x64\SDL2.dll) and place it in %windir%\system32.  (This is where you would need to know about sysWOW64 for x86 on amd64 - but ignore it if it means nothing to you).&lt;/p&gt;
+
+&lt;h3 id=&quot;visual-studio-configuration&quot;&gt;Visual Studio Configuration:&lt;/h3&gt;
+&lt;p&gt;Before we start, aside from some specific naming I will use to make the git repo easier to deal with, all this entails is telling VS where to find the SDL2 APIs we just downloaded.  It’s the same basic steps to add any external library on Windows (e.g. Direct3D or your_custom_control.lib).&lt;/p&gt;
+
+&lt;p&gt;Open up Visual Studio.  We will need to do some setup on the project so it can find the SDL files we’ll need such as the headers, static libs, and dlls.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Go to File-&amp;gt;New Project&lt;/li&gt;
+  &lt;li&gt;Select “Win32 Console Application”&lt;/li&gt;
+  &lt;li&gt;Check “Create directory for solution”&lt;/li&gt;
+  &lt;li&gt;Check “Create new Git repository”&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Make the name “windows” (this is the project name in the end) and the Location under your root to add “xplat-pmc-tutorial-01”.  This will make the linux side much easier.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/VSNewProject.png&quot; alt=&quot;Visual Studio 2015 New Project Settings&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Uncheck “Precompiled header”&lt;/li&gt;
+  &lt;li&gt;Check “empty project”&lt;/li&gt;
+  &lt;li&gt;Uncheck SDL checks (different SDL - Software development lifecycle)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One the new project loads…&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Right-click on the project and select “add new item”&lt;/li&gt;
+  &lt;li&gt;Add main.cpp to the root of the repo (up one level from the project)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Edit your main file to the following.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// main.cpp : Defines the entry point for the console application. 
+// 
+&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;SDL.h&amp;gt; 
+&lt;/span&gt; 
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;SDL_Log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;'Sup World?&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; 
+    &lt;span class=&quot;n&quot;&gt;SDL_Delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;It won’t build yet, and you should see a bunch of red squiggles since VS can’t find those files/references.  To fix this.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Project-&amp;gt;Properties-&amp;gt;Configuration Properties-&amp;gt;C++&amp;gt;Additional Include Directories&lt;/li&gt;
+  &lt;li&gt;Add “SDL2-2.0.4\Include”&lt;/li&gt;
+  &lt;li&gt;Click Apply&lt;/li&gt;
+  &lt;li&gt;Project-&amp;gt;Properties-&amp;gt;Linker-&amp;gt;Input-&amp;gt;Additional Dependencies&lt;/li&gt;
+  &lt;li&gt;Add “SDL2.lib and SDL2main.lib”&lt;/li&gt;
+  &lt;li&gt;Click Apply&lt;/li&gt;
+  &lt;li&gt;Project-&amp;gt;Properties-&amp;gt;Linker-&amp;gt;General-&amp;gt;Additional Library Directories&lt;/li&gt;
+  &lt;li&gt;Add your path to the libs (e.g. “..\SDL2-2.0.4\lib\x64)&lt;/li&gt;
+  &lt;li&gt;Click Ok&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I won’t post every pic, they follow a pattern here, but here is an example of the lib paths.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/VSLibPaths.png&quot; alt=&quot;Visual Studio 2015 New Project Settings&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://lazyfoo.net/tutorials/SDL/index.php&quot;&gt;lazyfoo&lt;/a&gt; has excellent SDL2 specific tutorials as well as more info on how to setup the depenedencies if you need another source.&lt;/p&gt;
+
+&lt;p&gt;At this point your project should know how to locate the SDL headers, static libs and runtime dll for x64.  Now we’ll try and build a simple exe that links against SDL2 to prove it. If it builds and links you should be good to go.  Be sure to check you changed the main signature.  SDL requires the format above and not “int main(void).”&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/win32out.png&quot; alt=&quot;Running Windows Application&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Take a look at this line for a second.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c--&quot; data-lang=&quot;c++&quot;&gt;&lt;span class=&quot;n&quot;&gt;SDL_Delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Already SDL is solving problems, if you don’t believe me google getting Sleep and sleep to work on linux/win32 :)  Commit the changed files.  VS nicely adds a bunch of stuff to your .gitignore file so you shouldn’t see anything too odd.&lt;/p&gt;
+
+&lt;p&gt;At this point you can push it to Github.  I placed mine at https://github.com/manixaist/xplat-pmc-tutorial-01, but we’re not done quite yet.  On to Linux.&lt;/p&gt;
+
+&lt;h2 id=&quot;linux&quot;&gt;Linux:&lt;/h2&gt;
+&lt;p&gt;For the linux side I’m using Ubuntu (specifically, ubuntu-16.04.1-desktop-amd64.iso).  I chose it because…&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;It’s Free&lt;/li&gt;
+  &lt;li&gt;It’s super easy to install&lt;/li&gt;
+  &lt;li&gt;I’m not building a server&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I’m going to assume you can get Ubuntu installed (burn it to CD or using a USB).  I will pick up on the first logon of my new user.&lt;/p&gt;
+
+&lt;p&gt;Open a terminal and create a new directory for your source.  I put mine at ~/coderoot&lt;/p&gt;
+
+&lt;p&gt;For some reason, Ubuntu did not come with Git, so install it with&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;sudo apt install git &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Open a browser (mine came with Firefox installed, use whichever you love most)&lt;/li&gt;
+  &lt;li&gt;Go to &lt;a href=&quot;https://code.visualstudio.com&quot;&gt;Visual Studio Code&lt;/a&gt; and click on the .deb file for Debian/Ubuntu&lt;/li&gt;
+  &lt;li&gt;Open with software install&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Click install&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Open VS Code&lt;/li&gt;
+  &lt;li&gt;Click on the extensions icon (last in list, looks like a square) and install the C/C++ extension (git history as well if you want)&lt;/li&gt;
+  &lt;li&gt;Enable them once installed and VS Code will restart&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In the terminal&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;sudo apt install libsdl2-2.0-0 
+sudo apt install libsdl2-dev &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now clone the repo we saved locally, for me this is&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;git clone https://github.com/manixaist/xplat-pmc-tutorial-01.git &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Add “.vscode/” and “*.exe” to .gitignore&lt;/p&gt;
+
+&lt;p&gt;And now for the makefile.  I’ve tried to keep this as simple/flexible as possible for now&lt;/p&gt;
+
+&lt;p&gt;In the root of the repository…&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;nano makefile &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html&quot;&gt;Excellent makefile reference btw&lt;/a&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-make&quot; data-lang=&quot;make&quot;&gt;&lt;span class=&quot;nv&quot;&gt;SHELL&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; /bin/sh 
+&lt;span class=&quot;nl&quot;&gt;.SUFFIXES&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; 
+&lt;span class=&quot;nl&quot;&gt;.SUFFIXES&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;.cpp .o &lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;EXE_NAME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; xplat-pmc-tutorial-01.exe 
+&lt;span class=&quot;c&quot;&gt;# Add additional .cpp/.o pairs to the MODULES List (e.g. main input graphics ...) 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;MODULES&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; main 
+&lt;span class=&quot;c&quot;&gt;# Generates a list of the modules with &quot;.o&quot; appended 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;OBJS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(MODULES)&lt;/span&gt;.o 
+&lt;span class=&quot;c&quot;&gt;# external libraries. 
+# remember ordering is important to the linker... 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LIBS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\ &lt;/span&gt;
+	&lt;span class=&quot;err&quot;&gt;-lSDL2&lt;/span&gt; 
+&lt;span class=&quot;nv&quot;&gt;REBUILDABLES&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(OBJS)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(EXE_NAME)&lt;/span&gt; 
+&lt;span class=&quot;c&quot;&gt;# All warning, debug output, C++11, x64 
+# later we can tease out the debug 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CXXFLAGS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; -Wall -g -std&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;c++11 -m64 
+&lt;span class=&quot;c&quot;&gt;# list of external paths 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;INCLUDE_PATHS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\ &lt;/span&gt;
+	&lt;span class=&quot;err&quot;&gt;/usr/include/SDL2&lt;/span&gt;  
+&lt;span class=&quot;c&quot;&gt;# Expands each include path above to -I/path/1 -I/path/2 ... etc 
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;INCLUDES&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; -I&lt;span class=&quot;nv&quot;&gt;$(INCLUDE_PATHS)&lt;/span&gt; 
+&lt;span class=&quot;nl&quot;&gt;all &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;$(EXE_NAME) &lt;/span&gt;
+	&lt;span class=&quot;nb&quot;&gt;echo &lt;/span&gt;All &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt; 
+&lt;span class=&quot;c&quot;&gt;# This is the linking rule, it creates the exe from the list of dependent objects 
+&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;$(EXE_NAME) &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;$(OBJS) &lt;/span&gt;
+	g++ -g -o &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$^&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(LIBS)&lt;/span&gt; 
+&lt;span class=&quot;c&quot;&gt;# Compilation rule, it matches the object's corresponding .cpp file 
+&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;%.o &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;%.cpp &lt;/span&gt;
+	g++ -o &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt; -c &lt;span class=&quot;nv&quot;&gt;$(CXXFLAGS)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(INCLUDES)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$&amp;lt;&lt;/span&gt; 
+&lt;span class=&quot;nl&quot;&gt;.PHONY &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;clean &lt;/span&gt;
+&lt;span class=&quot;nl&quot;&gt;clean &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;  
+	rm -f &lt;span class=&quot;nv&quot;&gt;$(REBUILDABLES)&lt;/span&gt; 
+	&lt;span class=&quot;err&quot;&gt;echo Clean done &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now you should be able to build with&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;make all &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Then run the local exe&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;./xplat-pmc-tutorial-01.exe &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And you can clean up with&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;make clean &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/linuxout.png&quot; alt=&quot;Running Linux Application&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we can push that back up and the first repo is done.  We now have common code linking to SDL2 compiling and running on both Win32 and Linux.  Note we did not touch the source file in the linux half…ok I did, but just to fix the include style from &lt;SDL2.h&gt; to &quot;SDL2.h&quot;, you can this if you look at the repo history.&lt;/SDL2.h&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;coming-soon&quot;&gt;Coming soon&lt;/h3&gt;
+&lt;p&gt;We’ll start making it look more like a game with some tiled graphics….&lt;/p&gt;
+</description>
+        <pubDate>Wed, 07 Sep 2016 09:31:43 -0700</pubDate>
+        <link>http://manixaist.github.io/coding/game/xplat/2016/09/07/xplat-pmc-01.html</link>
+        <guid isPermaLink="true">http://manixaist.github.io/coding/game/xplat/2016/09/07/xplat-pmc-01.html</guid>
+        
+        
+        <category>coding</category>
+        
+        <category>game</category>
+        
+        <category>xplat</category>
+        
+      </item>
+    
+  </channel>
+</rss>

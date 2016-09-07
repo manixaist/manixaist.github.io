@@ -1,0 +1,233 @@
+---
+layout: post
+title:  "Cross Platform Game - 01"
+date:   2016-09-07 22:01:43 +0530
+categories: coding game xplat
+author: "manixaist"
+---
+
+# Cross Platform Game - 01
+Cross platform development is something I have wanted to try for a while, and what better way than with a simple game?  I've chosen to make a Pac-Man clone, and over the next several posts will flesh it out further and further - ensuring it runs on both Windows and Linux.
+
+This will not be a tutorial on a specific API (e.g. SDL) though I will be using SDL2 for the cross platform encapsulation and I will show you everything you need to get setup and started.
+
+___
+
+## Goal for Today
+Produce a working exe on both Windows and Linux with the proper SDL2 libraries installed and linking. 
+
+### Assumptions
+My posts will assume a few things 
++ Basic understanding of Git/Github 
++ Basic C/C++ coding skills 
++ X64 capable machine, and OS installed. 
++ You can build x86 instead, but you will need to adjust some steps to do this on a x64 machine, and I will assume you know how to do that if you're trying. 
+
+#### Example Code
+[Github repo](https://github.com/manixaist/xplat-pmc-tutorial-01)
+
+## Windows 
+I am running on Windows 10 Pro x64 machine.  Any decently recent version of Windows should work just fine. 
+
+This is what you're going to need at a minimum, and it's all free even on Windows. 
+ 
++ [Visual Studio](http://www.visualstudio.com/): download the "Community 2015" version and install it. (Assuming you don't already have a version of Visual Studio.)
++ [Git-scm](https://git-scm.com/): install for Windows (I used 2.10.0 and the default install options.) 
++ [SDL](https://www.libsdl.org/download-2.0.php): download the zip or tarball.  Unzip the file and place the folder somewhere accessible by your code (it has the headers and libs e.g. "../SDL2-2.0.4/Include".) 
+ 
+You're going to want to place the development dlls in your system folder so they are accessible, so find the appropriate one (e.g. SDL2-2.0.4\lib\x64\SDL2.dll) and place it in %windir%\system32.  (This is where you would need to know about sysWOW64 for x86 on amd64 - but ignore it if it means nothing to you). 
+ 
+
+### Visual Studio Configuration: 
+Before we start, aside from some specific naming I will use to make the git repo easier to deal with, all this entails is telling VS where to find the SDL2 APIs we just downloaded.  It's the same basic steps to add any external library on Windows (e.g. Direct3D or your_custom_control.lib).
+
+Open up Visual Studio.  We will need to do some setup on the project so it can find the SDL files we'll need such as the headers, static libs, and dlls. 
+
++ Go to File->New Project 
++ Select "Win32 Console Application" 
++ Check "Create directory for solution" 
++ Check "Create new Git repository" 
+
+Make the name "windows" (this is the project name in the end) and the Location under your root to add "xplat-pmc-tutorial-01".  This will make the linux side much easier. 
+
+![Visual Studio 2015 New Project Settings](/images/VSNewProject.png)
+
++ Uncheck "Precompiled header" 
++ Check "empty project" 
++ Uncheck SDL checks (different SDL - Software development lifecycle) 
+
+One the new project loads...
+
++ Right-click on the project and select "add new item" 
++ Add main.cpp to the root of the repo (up one level from the project) 
+ 
+Edit your main file to the following.
+
+{% highlight cpp %}
+// main.cpp : Defines the entry point for the console application. 
+// 
+#include <SDL.h> 
+ 
+int main(int argc, char* argv[]) 
+{ 
+    SDL_Log("'Sup World?\r\n"); 
+    SDL_Delay(5000); 
+    return 0; 
+} 
+{% endhighlight %}
+
+It won't build yet, and you should see a bunch of red squiggles since VS can't find those files/references.  To fix this. 
+ 
++ Project->Properties->Configuration Properties->C++>Additional Include Directories 
++ Add "SDL2-2.0.4\Include" 
++ Click Apply 
++ Project->Properties->Linker->Input->Additional Dependencies 
++ Add "SDL2.lib and SDL2main.lib" 
++ Click Apply 
++ Project->Properties->Linker->General->Additional Library Directories 
++ Add your path to the libs (e.g. "..\SDL2-2.0.4\lib\x64) 
++ Click Ok 
+ 
+I won't post every pic, they follow a pattern here, but here is an example of the lib paths.
+
+![Visual Studio 2015 New Project Settings](/images/VSLibPaths.png)
+
+[lazyfoo](http://lazyfoo.net/tutorials/SDL/index.php) has excellent SDL2 specific tutorials as well as more info on how to setup the depenedencies if you need another source.
+
+At this point your project should know how to locate the SDL headers, static libs and runtime dll for x64.  Now we'll try and build a simple exe that links against SDL2 to prove it. If it builds and links you should be good to go.  Be sure to check you changed the main signature.  SDL requires the format above and not "int main(void)." 
+
+
+![Running Windows Application](/images/win32out.png)
+
+Take a look at this line for a second. 
+ 
+
+{% highlight c++ %}
+SDL_Delay(5000); 
+{% endhighlight %}
+ 
+
+Already SDL is solving problems, if you don't believe me google getting Sleep and sleep to work on linux/win32 :)  Commit the changed files.  VS nicely adds a bunch of stuff to your .gitignore file so you shouldn't see anything too odd. 
+ 
+At this point you can push it to Github.  I placed mine at https://github.com/manixaist/xplat-pmc-tutorial-01, but we're not done quite yet.  On to Linux. 
+ 
+## Linux: 
+For the linux side I'm using Ubuntu (specifically, ubuntu-16.04.1-desktop-amd64.iso).  I chose it because...
+
+1. It's Free
+2. It's super easy to install 
+3. I'm not building a server
+ 
+I'm going to assume you can get Ubuntu installed (burn it to CD or using a USB).  I will pick up on the first logon of my new user. 
+
+Open a terminal and create a new directory for your source.  I put mine at ~/coderoot 
+ 
+For some reason, Ubuntu did not come with Git, so install it with 
+
+{% highlight shell %}
+sudo apt install git 
+{% endhighlight %}
+ 
+
++ Open a browser (mine came with Firefox installed, use whichever you love most) 
++ Go to [Visual Studio Code](https://code.visualstudio.com) and click on the .deb file for Debian/Ubuntu 
++ Open with software install 
++ Click install 
+
+ 
++ Open VS Code 
++ Click on the extensions icon (last in list, looks like a square) and install the C/C++ extension (git history as well if you want) 
++ Enable them once installed and VS Code will restart 
+
+ 
+In the terminal 
+{% highlight shell %}
+sudo apt install libsdl2-2.0-0 
+sudo apt install libsdl2-dev 
+{% endhighlight %}
+ 
+
+Now clone the repo we saved locally, for me this is 
+{% highlight shell %}
+git clone https://github.com/manixaist/xplat-pmc-tutorial-01.git 
+{% endhighlight %}
+ 
+Add ".vscode/" and "*.exe" to .gitignore 
+ 
+And now for the makefile.  I've tried to keep this as simple/flexible as possible for now 
+ 
+In the root of the repository...
+
+
+{% highlight shell %}
+nano makefile 
+{% endhighlight %}
+
+[Excellent makefile reference btw](https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html)
+
+
+{% highlight make %}
+SHELL = /bin/sh 
+.SUFFIXES: 
+.SUFFIXES: .cpp .o 
+EXE_NAME = xplat-pmc-tutorial-01.exe 
+# Add additional .cpp/.o pairs to the MODULES List (e.g. main input graphics ...) 
+MODULES := main 
+# Generates a list of the modules with ".o" appended 
+OBJS := $(MODULES).o 
+# external libraries. 
+# remember ordering is important to the linker... 
+LIBS := \ 
+	-lSDL2 
+REBUILDABLES := $(OBJS) $(EXE_NAME) 
+# All warning, debug output, C++11, x64 
+# later we can tease out the debug 
+CXXFLAGS += -Wall -g -std=c++11 -m64 
+# list of external paths 
+INCLUDE_PATHS := \ 
+	/usr/include/SDL2  
+# Expands each include path above to -I/path/1 -I/path/2 ... etc 
+INCLUDES := -I$(INCLUDE_PATHS) 
+all : $(EXE_NAME) 
+	echo All done 
+# This is the linking rule, it creates the exe from the list of dependent objects 
+$(EXE_NAME) : $(OBJS) 
+	g++ -g -o $@ $^ $(LIBS) 
+# Compilation rule, it matches the object's corresponding .cpp file 
+%.o : %.cpp 
+	g++ -o $@ -c $(CXXFLAGS) $(INCLUDES) $< 
+.PHONY : clean 
+clean :  
+	rm -f $(REBUILDABLES) 
+	echo Clean done 
+{% endhighlight %}
+ 
+
+Now you should be able to build with 
+ 
+{% highlight shell %}
+make all 
+{% endhighlight %}
+ 
+Then run the local exe 
+
+
+{% highlight shell %}
+./xplat-pmc-tutorial-01.exe 
+{% endhighlight %}
+ 
+And you can clean up with  
+
+
+{% highlight shell %}
+make clean 
+{% endhighlight %}
+
+![Running Linux Application](/images/linuxout.png)
+
+Now we can push that back up and the first repo is done.  We now have common code linking to SDL2 compiling and running on both Win32 and Linux.  Note we did not touch the source file in the linux half…ok I did, but just to fix the include style from <SDL2.h> to "SDL2.h", you can this if you look at the repo history.
+
+___
+ 
+### Coming soon
+We'll start making it look more like a game with some tiled graphics....
