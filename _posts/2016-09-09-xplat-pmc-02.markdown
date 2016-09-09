@@ -1,0 +1,270 @@
+---
+layout: post
+title:  "Cross Platform Game - 02"
+date:   2016-09-09 01:00:56 -0700
+categories: coding game xplat
+author: "manixaist"
+---
+
+# 2D Tiled Map for Pac-Man Clone
+Last time we finished with a binary printing to the console on both platforms; not very exciting.  Today we're going to start making this look more like a game by rendering a 2D tiled map to a window.  This map will be the start of our Pac-Man clone, the game maze.
+
+Behold our end goal for today!
+
+![Running Linux Application](/images/linuxout02.png)
+
+### Priorities
+My main goal is to write code that is readable.  The code is not here to impress anyone with fancy uses of the language or getting umpteen things done in a single statement.  Clarity over cleverness or brevity for the sake of these posts.
+
+Also important is making sure we maintain parity on both platforms.  The last thing we need is to spend dozens or even hundreds of hours solving some problem and writing/debugging tons of code only to have it not even compile (or worse compile fine but behave differently).
+
+In the old DOS days, we could pack tile info into some clever struct of OR'd bits, etc, etc…this is not a good idea when the endianness can change on you.  It's also not really necessary given we no longer run on quite the same extreme low ends of available memory.
+
+___
+
+## Goals for Today
++ Install and setup SDL2-Image libraries
++ Create a window (800x600 will do nicely)
++ Load a PNG onto a texture
++ Divide the texture into tiles
++ Render the tiles based on map indicies
++ Run inside a simple fixed FPS loop
+
+### Assumptions
++ You went through the previous post(s)
+
+#### Example Code
+[Github repo](https://github.com/manixaist/xplat-pmc-tutorial-02)
+
+## Setup: Windows 
+To enable PNG support (as well as anything other than BMP) we need the SDL2 Image library.  Installing it will be exactly the same as the SDL2 library.
+ 
++ [SDL2-Image](https://www.libsdl.org/projects/SDL_image/): download the development libraries and unzip them just like we did with the SDL2 files.  I placed them at the same root level (e.g. alongside ./SDL202.0.4).
+ 
+You're going to want to place the development dlls in your system folder so they are accessible again as well. 
+
+### Visual Studio Configuration: 
+All we need to do is add the new SDL_image libs just like before.
+ 
++ Project->Properties->Configuration Properties->C++>Additional Include Directories 
++ Add "SDL2_image-2.0.1\Include" 
++ Click Apply 
++ Project->Properties->Linker->Input->Additional Dependencies 
++ Add "SDL2_image.lib" 
++ Click Apply 
++ Project->Properties->Linker->General->Additional Library Directories 
++ Add your path to the libs (e.g. "..\SDL2_image-2.0.1\lib\x64) 
++ Click Ok 
+
+## Setup: Linux 
+We need the same libs on linux, installing them is as easy as...
+
+{% highlight shell %}
+sudo apt-get libsdl2-image-2.0-0
+sudo apt-get libsdl2-image-dev
+{% endhighlight %}
+
+---
+
+## Setup over, back to the game...
+Check out [The Pac-Man Dossier Ch#3](http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html#Chapter%203) for some background on how the map is divided.  I'll be using the same method.  There are tons of Pac-Man related knowledge to be found here.
+
+The high points are, the grid is 28 cols by 36 rows.  The original game was 8px square per tile.  I'm going to bump that up to 16px, but otherwise the map will stay the same.
+
+I've created my own set of tiles using Photoshop (based on the original art or course) and placed them under a folder called "./grfx".
+
+### Enable PNG in code and loading the texture
+Reminder: There are tons of SDL specific tutorials at [lazyfoo.net](http://lazyfoo.net/tutorials/SDL/) and I refer to them frequently.  I will point out specific features as we use them, but not in depth, I assume you can read the code and docs, and the SDL tutorials...
+
+We'll be using the renderer and acceleration, so we need to start initing SDL subsystems.  All we need for now is VIDEO.
+
+{% highlight cpp %}
+if (SDL_Init(SDL_INIT_VIDEO) < 0)
+{
+    printf("SDL_Init() failed, error = %s\n", SDL_GetError());
+}
+{% endhighlight %}
+
+Creating a window is the same, we make one 800x600 to hold the map (the map is 448x576 px)
+
+We also need a renderer to make use of textures, creating one is easy
+
+{% highlight cpp %}
+SDL_CreateRenderer(*ppSDLWindow, -1, SDL_RENDERER_ACCELERATED);
+{% endhighlight %}
+
+Set the color that will clear the renderer.  I made it grey so the map edges would be visible.
+{% highlight cpp %}
+SDL_SetRenderDrawColor(*ppSDLRenderer, r, g, b, a);
+{% endhighlight %}
+
+One last bit of code setup.  We need to turn on PNG support.
+
+{% highlight cpp %}
+IMG_Init(IMG_INIT_PNG);
+{% endhighlight %}
+
+Loading a texture takes 2 steps.  First we load the image to a SDL_Surface, the we create a SDL_Texture from that SDL_Surface for the renderer.
+
+{% highlight cpp %}
+SDL_Texture* LoadTexture(const char *szFileName, SDL_Renderer *pSDLRenderer)
+{
+    SDL_Texture* pTextureOut = nullptr;
+    SDL_Surface* pSDLSurface = IMG_Load(szFileName);
+    if (pSDLSurface == nullptr)
+    {
+        printf("IMG_Load() failed, error = %s\n", IMG_GetError());
+    }
+    else
+    {
+        pTextureOut = SDL_CreateTextureFromSurface(pSDLRenderer, pSDLSurface);
+        SDL_FreeSurface(pSDLSurface);
+    }
+    return pTextureOut;
+}
+{% endhighlight %}
+
+### Creating the 2D TileMap
+Great, now we can load a texture.  The next step is dividing up that texture into an ordered list of source rects representing the various tiles available.
+
+For our Pac-Man clone, we're going to assume the texture holds an evenly divisible number of tiles in each direction.  Each tile will be 16x16 pixels (the original was 8x8) and I am leaving some room for future tiles.  Below is an example of the texture layout.
+
+![Tile layout](/images/TileLayout02.png)
+
+So what would the code look like to do all that fancy dividing?
+
+{% highlight cpp %}
+bool TiledMap::Initialize(
+    SDL_Rect textureRect,           // Size of the texture
+    SDL_Rect tileRect,              // size of the tile
+    SDL_Texture *pTexture,          // texture holding the tiles
+    Uint16 *pMapIndices,            // array of indicies to the tiles
+    Uint16 countOfIndicies)         // count of that previous array
+{
+    // Copy the map indicies data
+    _pMapIndicies = new Uint16[countOfIndicies] { };
+    SDL_memcpy(_pMapIndicies, pMapIndices, countOfIndicies * sizeof(Uint16));
+
+    // Copy the texture data
+    _pTileTexture = pTexture;
+    SDL_memcpy(&_textureRect, &textureRect, sizeof(SDL_Rect));
+
+    // Calculate the total available tiles on the texture 
+    // and allocate space for the source rects
+    _tileSize = tileRect.w;         //Pick either, we assuming they are the same so far
+    Uint16 textureTilesPerWidth  = (_textureRect.w / _tileSize);
+    Uint16 textureTilesPerHeight = (_textureRect.h / _tileSize);
+    _cTilesOnTexture = ((_textureRect.w / _tileSize) * textureTilesPerHeight);
+    _pTileRects = new SDL_Rect[_cTilesOnTexture] {};
+    
+    // Loop through the tiles and set the source rects
+    for (int r = 0; r < textureTilesPerHeight; r++)
+    {
+        for (int c = 0; c < textureTilesPerWidth; c++)
+        {
+            _pTileRects[((r * textureTilesPerHeight) + c)].h = _tileSize;
+            _pTileRects[((r * textureTilesPerHeight) + c)].w = _tileSize;
+            _pTileRects[((r * textureTilesPerHeight) + c)].x = _tileSize * c;
+            _pTileRects[((r * textureTilesPerHeight) + c)].y = _tileSize * r;
+        }
+    }
+    return true;
+}
+{% endhighlight %}
+
+This all assumes we have the texture and indicies data already loaded.  We just saw how to load a texture, we'll get to the indicies in a moment.
+
+First, how do we render all these rects?
+
+{% highlight cpp %}
+// Loop through the map of indicies and render each tile in order.
+void TiledMap::Render(SDL_Renderer *pSDLRenderer, Uint16 cxScreen, Uint16 cyScreen)
+{
+    // Center the map, so calculate the offsets
+    Uint16 cxOffset = (cxScreen - (_cCols * _tileSize)) / 2;
+    Uint16 cyOffset = (cyScreen - (_cRows * _tileSize)) / 2;
+
+    SDL_Rect targetRect = {0, 0, _tileSize, _tileSize };
+    for (int r = 0; r < _cRows; r++)
+    {
+        for (int c = 0; c < _cCols; c++) 
+        {
+            targetRect.x = (c * _tileSize) + cxOffset;
+            targetRect.y = (r * _tileSize) + cyOffset;
+            int currentTileIndex = _pMapIndicies[r * _cCols + c];
+
+            SDL_RenderCopy(pSDLRenderer, _pTileTexture, 
+                &_pTileRects[currentTileIndex], &targetRect);
+        }
+    }
+}
+{% endhighlight %}
+
+### Game Loop
+There are lots of different game loops out there.  I am going to use an extremely simple one for now, since it's all we need.  We'll fix the framerate to 60 FPS.
+
+![Game loop](/images/gameloop02.png)
+
+{% highlight cpp %}
+...
+bool fQuit = false;
+SDL_Event eventSDL;
+
+Uint32 startTicks;
+while (!fQuit)
+{
+    startTicks = SDL_GetTicks();
+    while (SDL_PollEvent(&eventSDL) != 0)
+    {
+        if (eventSDL.type == SDL_QUIT)
+        {
+            fQuit = true;
+        }
+    }
+
+    if (!fQuit)
+    {
+        SDL_RenderClear(pSDLRenderer);
+        tiledMap.Render(pSDLRenderer, c_cxScreen, c_cyScreen);
+        SDL_RenderPresent(pSDLRenderer);
+
+        // Fix this at ~c_framesPerSecond
+        Uint32 endTicks = SDL_GetTicks();
+        Uint32 elapsedTicks = endTicks - startTicks;
+        if (elapsedTicks < c_ticksPerFrame)
+        {
+            SDL_Delay(c_ticksPerFrame - elapsedTicks);
+        }
+    }
+}
+{% endhighlight %}
+
+Ideally you would never execute that "No" branch as it means you spent more than your alloted time per frame.  This means your framerate is not keeping up.
+
+### !@$%#^ Visual Studio!!
+I spent a good of time debugging why my {% highlight cpp %}IMG_Load(szFileName);{% endhighlight %} was failing.  I knew VS would copy built files to another directory (e.g. ./Debug/x64/...) so I would need to copy my graphics files over.  However, it was still failing.
+
+Visual studio decided that while the exe would get copied to the $(SolutionDir)/{output} folder the current working directory would get set to $(ProjectDir)/.
+
+Remember to check your cwd in cases like this.  You can solve this with an automated copy as part of your post-build in VS
+
+![VS Post-Build](/images/VSPostBuildEvent02.png)
+
+### Generating indicies
+If you're making a game, find out what tools you need up front, and see if there are ones available in your price range or if you can make them yourself.  For 2D tiles, there are a few options, but we're going to reuse the same map for a while, so I have it in a static array we can keep copying.  I needed to work out the per-pixel logic anyway.  (If you look at the tiles, you'll notice there are "inside" or "reverse" versions of each turn and edge).
+
+
+## Output
+___
+win32
+
+![Running Win32 Application](/images/win32out02.png)
+
+linux
+
+![Running Linux Application](/images/linuxout02.png)
+
+___
+ 
+### Coming soon
+Next time we're going to add the player sprite and keyboard input.

@@ -10,8 +10,7 @@ title: manixaist.github.io
 email: manixaist@gmail.com
 
 #write html inside the double quotes to display in jumbotron
-description: "<h1>Developer Journal</h1><h4>Github pages for coding projects</h4><a href='http://xkcd.com/1477/'><img src='http://imgs.xkcd.com/comics/operating_systems.png'/></a> "
-
+description: "<h1>Developer Journal</h1><h4>Github pages for coding projects:</h4><p/><h4>A collection of my hobbyist projects.</h4><p/><a href='http://xkcd.com/1724/'><img src='http://imgs.xkcd.com/comics/proofs.png'/></a"
 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://manixaist.github.io" # the base hostname & protocol for your site
@@ -19,4 +18,5 @@ url: "http://manixaist.github.io" # the base hostname & protocol for your site
 github_username:  manixaist
 
 # Build settings
-markdown: kramdown  
+markdown: kramdown
+
