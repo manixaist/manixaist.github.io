@@ -8,7 +8,8 @@ author: "manixaist"
 
 
 # Sprites, Input, and Collisions...
-Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term for 2D bitmaps that move around and animate.  Historically they had specicial hardware implementations, but wikipedia that if you'd like.
+Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term 
+for 2D bitmaps that move around and animate.  Historically they had special hardware implementations, but wikipedia that if you'd like.
 
 To us, sprites are images that represent the player (and eventually the ghosts) and show its current position and state graphically.  In the case of the player, we expect to be able to control the movement within the bounds of the maze.
 

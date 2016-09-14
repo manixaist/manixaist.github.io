@@ -5,14 +5,15 @@
     <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects:&lt;/h4&gt;&lt;p/&gt;&lt;h4&gt;A collection of my hobbyist projects.&lt;/h4&gt;&lt;p/&gt;&lt;a href='http://xkcd.com/1724/'&gt;&lt;img src='http://imgs.xkcd.com/comics/proofs.png'/&gt;&lt;/a</description>
     <link>http://manixaist.github.io/</link>
     <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 14 Sep 2016 15:06:47 -0700</pubDate>
-    <lastBuildDate>Wed, 14 Sep 2016 15:06:47 -0700</lastBuildDate>
+    <pubDate>Wed, 14 Sep 2016 15:21:38 -0700</pubDate>
+    <lastBuildDate>Wed, 14 Sep 2016 15:21:38 -0700</lastBuildDate>
     <generator>Jekyll v3.2.1</generator>
     
       <item>
         <title>Cross Platform Game - 03</title>
         <description>&lt;h1 id=&quot;sprites-input-and-collisions&quot;&gt;Sprites, Input, and Collisions…&lt;/h1&gt;
-&lt;p&gt;Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term for 2D bitmaps that move around and animate.  Historically they had specicial hardware implementations, but wikipedia that if you’d like.&lt;/p&gt;
+&lt;p&gt;Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term 
+for 2D bitmaps that move around and animate.  Historically they had special hardware implementations, but wikipedia that if you’d like.&lt;/p&gt;
 
 &lt;p&gt;To us, sprites are images that represent the player (and eventually the ghosts) and show its current position and state graphically.  In the case of the player, we expect to be able to control the movement within the bounds of the maze.&lt;/p&gt;
 
