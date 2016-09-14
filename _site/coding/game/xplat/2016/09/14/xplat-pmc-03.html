@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta content="manixaist.github.io" property="og:site_name">
+
+  <meta content="Cross Platform Game - 03" property="og:title">
+
+
+  <meta content="article" property="og:type">
+
+
+  <meta content="<h1>Developer Journal</h1><h4>Github pages for coding projects:</h4><p/><h4>A collection of my hobbyist projects.</h4><p/><a href='http://xkcd.com/1724/'><img src='http://imgs.xkcd.com/comics/proofs.png'/></a" property="og:description">
+
+
+  <meta content="http://manixaist.github.io/coding/game/xplat/2016/09/14/xplat-pmc-03.html" property="og:url">
+
+
+  <meta content="2016-09-14T15:05:00-07:00" property="article:published_time">
+  <meta content="http://manixaist.github.io/about/" property="article:author">
+
+
+  <meta property="og:image" content="">
+
+
+  
+  <meta content="coding" property="article:section">
+  
+
+
+  
+
+  <title>Cross Platform Game - 03</title>
+  <meta name="description" content="Sprites, Input, and Collisions…Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term for 2...">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/css/main.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+  <link href='https://fonts.googleapis.com/css?family=PT+Sans' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Mono' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,200,300,500,600,700,900' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Gentium+Basic:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Alegreya:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300,500,700' rel='stylesheet' type='text/css'>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-hQpvDQiCJaD2H465dQfA717v7lu5qHWtDbWNPvaTJ0ID5xnPUlVXnKzq7b8YUkbN" crossorigin="anonymous">
+  <link rel="canonical" href="http://manixaist.github.io/coding/game/xplat/2016/09/14/xplat-pmc-03.html">
+  <link rel="alternate" type="application/rss+xml" title="manixaist.github.io" href="http://manixaist.github.io/feed.xml">
+</head>
+
+
+  <body>
+<section>
+<nav class="navbar navbar-default navbar-fixed-top">
+
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">manixaist.github.io</a>
+    </div>
+
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        
+        
+
+        
+        
+
+        
+        
+
+        
+
+
+      </ul>
+
+    <!--  <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Know More!</a></li>
+
+      </ul>-->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</section>
+
+<section>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="jumbotron">
+    <div class="container">
+      <h1 class="post-title-main" itemprop="name headline">Cross Platform Game - 03</h1>
+      <p class="post-meta"><time datetime="2016-09-14T15:05:00-07:00" itemprop="datePublished">Sep 14, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">manixaist</span></span></p>
+      
+    </div>
+
+</div>
+
+
+  <div class="post-content container" itemprop="articleBody">
+    <h1 id="sprites-input-and-collisions">Sprites, Input, and Collisions…</h1>
+<p>Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term for 2D bitmaps that move around and animate.  Historically they had specicial hardware implementations, but wikipedia that if you’d like.</p>
+
+<p>To us, sprites are images that represent the player (and eventually the ghosts) and show its current position and state graphically.  In the case of the player, we expect to be able to control the movement within the bounds of the maze.</p>
+
+<p>Behold our end goal for today!</p>
+
+<p><img src="/images/PMC03.gif" alt="Running Win32 Application" /></p>
+
+<h1 id="code-reorganization">Code Reorganization</h1>
+<p>If you’ve been following the code, you’ll notice some reorganization.  I’ve placed helper classes and methods into their own source files and confined them all to my own namespace</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">namespace</span> <span class="n">XplatGameTutorial</span>
+<span class="p">{</span>
+<span class="k">namespace</span> <span class="n">PacManClone</span>
+<span class="p">{</span>
+    <span class="c1">// Code goes here...
+</span><span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This allows us to avoid collision with existing or global namespaces.</p>
+
+<hr />
+
+<h2 id="goals-for-today">Goals for Today</h2>
+<ul>
+  <li>Capture keyboard input</li>
+  <li>Create a Sprite object to manage the position, frames, animation, etc for the player</li>
+  <li>Manage the interaction between the maze and the player sprite</li>
+</ul>
+
+<h3 id="assumptions">Assumptions</h3>
+<ul>
+  <li>You went through the previous post(s)</li>
+</ul>
+
+<hr />
+
+<h4 id="github-repohttpsgithubcommanixaistxplat-pmc-tutorial-03"><a href="https://github.com/manixaist/xplat-pmc-tutorial-03">Github repo</a></h4>
+
+<h2 id="setup">Setup:</h2>
+<p>None needed this time!  No new libraries!</p>
+
+<h2 id="keyboard-input">Keyboard Input</h2>
+<p>This is ridiculously easy to get, as long as your app is pumping messages (which we are)</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">const</span> <span class="n">Uint8</span> <span class="o">*</span><span class="n">pCurrentKeyState</span> <span class="o">=</span> <span class="n">SDL_GetKeyboardState</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">);</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">pCurrentKeyState</span><span class="p">[</span><span class="n">SDL_SCANCODE_UP</span><span class="p">])</span> <span class="c1">// Up Arrow
+</span><span class="p">{</span>
+    <span class="c1">//Do some stuff...
+</span><span class="p">}</span>
+<span class="p">...</span></code></pre></figure>
+
+<p>All you need to do is check this array each loop after processing the messages and if the index is set (using SDL_SCANCODE_XXX) then the key is pressed.</p>
+
+<h2 id="sprite-class">Sprite class</h2>
+<p>This is what we need in a sprite</p>
+<ul>
+  <li>Position (X, Y)</li>
+  <li>Velocity (DX, DY)</li>
+  <li>Array of frames belonging to the sprite</li>
+  <li>Index to current frame (what we’ll draw this frame)</li>
+  <li>Array of animation sequences that control the above index</li>
+  <li>Transparency</li>
+</ul>
+
+<p>Position and velocity are easy enough, they are just member fields (though note they are doubles and not ints for greater precision e.g. 1.5 pixels 
+per frame is possible).</p>
+
+<p>Loading the frame data we’ve already done for the TiledMap class.  The only modification is to our texture loading helper to set the optional transparency.
+After the surface is created by loading the image from disk, we can use SDL_SetColorKey() to set the transparent color key.  This will prevent any pixels matching 
+that color from being drawn (whatever was below it pixel-wise will remain).  For the sprite texture, I used magenta (RGB(255,0,255)) as the key as it rarely appears
+in my images.</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="n">SDL_Texture</span><span class="o">*</span> <span class="nf">LoadTexture</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">szFileName</span><span class="p">,</span> 
+    <span class="n">SDL_Renderer</span> <span class="o">*</span><span class="n">pSDLRenderer</span><span class="p">,</span> <span class="n">SDL_Color</span> <span class="o">*</span><span class="n">pColorKey</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">SDL_Texture</span><span class="o">*</span> <span class="n">pTextureOut</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+    <span class="n">SDL_Surface</span><span class="o">*</span> <span class="n">pSDLSurface</span> <span class="o">=</span> <span class="n">IMG_Load</span><span class="p">(</span><span class="n">szFileName</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pSDLSurface</span> <span class="o">==</span> <span class="nb">nullptr</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"IMG_Load() failed, error = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">IMG_GetError</span><span class="p">());</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">pSdlTransparencyColorKey</span> <span class="o">!=</span> <span class="nb">nullptr</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="c1">// Set the color key
+</span>            <span class="n">SDL_SetColorKey</span><span class="p">(</span><span class="n">pSDLSurface</span><span class="p">,</span> <span class="n">SDL_TRUE</span><span class="p">,</span> <span class="n">SDL_MapRGB</span><span class="p">(</span><span class="n">pSDLSurface</span><span class="o">-&gt;</span><span class="n">format</span><span class="p">,</span> 
+                <span class="n">pColorKey</span><span class="o">-&gt;</span><span class="n">r</span><span class="p">,</span> <span class="n">pColorKey</span><span class="o">-&gt;</span><span class="n">g</span><span class="p">,</span> <span class="n">pColorKey</span><span class="o">-&gt;</span><span class="n">b</span><span class="p">));</span>
+        <span class="p">}</span>
+        <span class="n">pTextureOut</span> <span class="o">=</span> <span class="n">SDL_CreateTextureFromSurface</span><span class="p">(</span><span class="n">pSDLRenderer</span><span class="p">,</span> <span class="n">pSDLSurface</span><span class="p">);</span>
+        <span class="n">SDL_FreeSurface</span><span class="p">(</span><span class="n">pSDLSurface</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">pTextureOut</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Once the frames are loaded, we need to know how to draw them and when.  Frame sequences are called animations, and along with a delay between updates, make
+our sprite look alive.</p>
+
+<p>If you look in the grfx folder you will see the file “spritesheet.png”.  This holds the PacManClone frames.  Note we could have done with 6 less 
+frames if we allowed the blitter to handle rotation, but I’m making a point about animations here.</p>
+
+<p>We have 5 animations for our PacManClone: moving left, right, up, down, and dying.  The first 4 loop repeatedly and the last will stop when it reaches the end.
+If we set the correct animation for the given velocity, it will appear to move correctly.</p>
+
+<p>Here is an example of how we would animate a moving PacMan (note not the actual spritesheet since magenta would look horrible here).</p>
+
+<p><img src="/images/PacManSpritesDemo.gif" alt="Sprite Example" /></p>
+
+<p>Take a look at “include/spriteanimation.h” in the repo to see how it’s done.  It’s really just an array of ints and a counter.</p>
+
+<h3 id="sprite-placement-and-movement">Sprite placement and movement</h3>
+<p>This is going to be very game dependent.  For example if you’re making something like “Space Invaders”, you’d only need to worry about movement along one axis.
+If you’re doing something like “The Legend of Zelda” you could move along both axes at once anywhere on the screen (minus collision).</p>
+
+<p>For our PacManClone, we’re going to keep it very close to the <a href="http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html">original</a> and place our player
+sprite along the centerline of the tile it occupies.  The player can be moving in a maximum of one axis direction at a time.</p>
+
+<p>Since the player is twice the size of a tile, the graphics will overlap, but this is intentional, and in fact, our sprite must account for this offset when rendering.</p>
+
+<p><img src="/images/SpritePlacement.png" alt="Sprite Example" /></p>
+
+<p>This all might look complicated, but it makes collision checks extremely simple.  All we care about is what tile the sprite is in.  The tile is determined soley
+by its location (X,Y), and this is just a single point to determine on the grid.  But how to tell if a tile can be moved into?</p>
+
+<p>The flashing tiles below are considered legal space for the player to move.  If the sprite wants to move into a tile, we have to check if it’s one of these.
+If it is not, then the input is essentially ignored.  If it is, then we need to snap the sprite to the new centerline (e.g. the red line in the image above 
+if the player wanted to move up) of that tile and set its new velocity and animation.</p>
+
+<p><img src="/images/PacManFreeSpaceAnimation.gif" alt="Sprite Example" /></p>
+
+<p>Since we already have the map and position as grids, we can add a new piece of data as an identically sized grid (array) that holds this info.</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="c1">// Constants.cpp
+</span><span class="n">Uint16</span> <span class="n">Constants</span><span class="o">::</span><span class="n">CollisionMap</span><span class="p">[</span><span class="n">MapRows</span> <span class="o">*</span> <span class="n">MapCols</span><span class="p">]</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">etc</span><span class="p">...</span>
+<span class="p">};</span></code></pre></figure>
+
+<p>Now collision checks are</p>
+<ol>
+  <li>Calculate what cell the player is in</li>
+  <li>Calculate what cell the player wants to move to based on velocity and/or input</li>
+  <li>Is that cell legal space?  If not, stop moving, if so place it correctly if velocity changed</li>
+</ol>
+
+<p>And now you have a player sprite that responds to input!  More like a game than ever before.  If you build the code you should be able to 
+control movement with either the arrow keys or WASD.  If you press ‘X’ you’ll trigger the death animation.  Just hit a directional key to
+turn the sprite back on.  You can also hit ‘ESC’ to exit the application.</p>
+
+<h2 id="output">Output</h2>
+<hr />
+<p>win32 (linux looks the same, compile it and see! I checked)</p>
+
+<p><img src="/images/PMC03.gif" alt="Running Win32 Application" /></p>
+
+<hr />
+
+<h3 id="coming-soon">Coming soon</h3>
+<p>Handling that wrap around, eating pellets, and how to tell when the level is over.</p>
+
+  </div>
+
+</article>
+
+</section>
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container footer-content">
+    <p>2016-09-14 15:05:00 -0700</p>
+  </div>
+</nav>
+
+
+  </body>
+
+</html>

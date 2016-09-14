@@ -1,0 +1,181 @@
+---
+layout: post
+title:  "Cross Platform Game - 03"
+date:   2016-09-14 15:05:00 -0700
+categories: coding game xplat
+author: "manixaist"
+---
+
+
+# Sprites, Input, and Collisions...
+Now that we have our playing area mapped out and rendering, we need to add sprites.  Sprites are nowadays a generic term for 2D bitmaps that move around and animate.  Historically they had specicial hardware implementations, but wikipedia that if you'd like.
+
+To us, sprites are images that represent the player (and eventually the ghosts) and show its current position and state graphically.  In the case of the player, we expect to be able to control the movement within the bounds of the maze.
+
+Behold our end goal for today!
+
+![Running Win32 Application](/images/PMC03.gif)
+
+# Code Reorganization
+If you've been following the code, you'll notice some reorganization.  I've placed helper classes and methods into their own source files and confined them all to my own namespace
+
+{% highlight c++ %}
+namespace XplatGameTutorial
+{
+namespace PacManClone
+{
+    // Code goes here...
+}
+}
+{% endhighlight %}
+
+This allows us to avoid collision with existing or global namespaces.
+
+___
+
+## Goals for Today
++ Capture keyboard input
++ Create a Sprite object to manage the position, frames, animation, etc for the player
++ Manage the interaction between the maze and the player sprite
+
+### Assumptions
++ You went through the previous post(s)
+
+___
+
+#### [Github repo](https://github.com/manixaist/xplat-pmc-tutorial-03)
+
+## Setup: 
+None needed this time!  No new libraries!
+
+## Keyboard Input
+This is ridiculously easy to get, as long as your app is pumping messages (which we are)
+{% highlight c++ %}
+const Uint8 *pCurrentKeyState = SDL_GetKeyboardState(nullptr);
+
+if (pCurrentKeyState[SDL_SCANCODE_UP]) // Up Arrow
+{
+    //Do some stuff...
+}
+...
+{% endhighlight %}
+
+All you need to do is check this array each loop after processing the messages and if the index is set (using SDL_SCANCODE_XXX) then the key is pressed.
+
+## Sprite class
+This is what we need in a sprite
++ Position (X, Y)
++ Velocity (DX, DY)
++ Array of frames belonging to the sprite
++ Index to current frame (what we'll draw this frame)
++ Array of animation sequences that control the above index
++ Transparency
+
+Position and velocity are easy enough, they are just member fields (though note they are doubles and not ints for greater precision e.g. 1.5 pixels 
+per frame is possible).  
+
+Loading the frame data we've already done for the TiledMap class.  The only modification is to our texture loading helper to set the optional transparency.
+After the surface is created by loading the image from disk, we can use SDL_SetColorKey() to set the transparent color key.  This will prevent any pixels matching 
+that color from being drawn (whatever was below it pixel-wise will remain).  For the sprite texture, I used magenta (RGB(255,0,255)) as the key as it rarely appears
+in my images.
+
+{% highlight c++ %}
+SDL_Texture* LoadTexture(const char *szFileName, 
+    SDL_Renderer *pSDLRenderer, SDL_Color *pColorKey)
+{
+    SDL_Texture* pTextureOut = nullptr;
+    SDL_Surface* pSDLSurface = IMG_Load(szFileName);
+    if (pSDLSurface == nullptr)
+    {
+        printf("IMG_Load() failed, error = %s\n", IMG_GetError());
+    }
+    else
+    {
+        if (pSdlTransparencyColorKey != nullptr)
+        {
+            // Set the color key
+            SDL_SetColorKey(pSDLSurface, SDL_TRUE, SDL_MapRGB(pSDLSurface->format, 
+                pColorKey->r, pColorKey->g, pColorKey->b));
+        }
+        pTextureOut = SDL_CreateTextureFromSurface(pSDLRenderer, pSDLSurface);
+        SDL_FreeSurface(pSDLSurface);
+    }
+    return pTextureOut;
+}
+{% endhighlight %}
+
+Once the frames are loaded, we need to know how to draw them and when.  Frame sequences are called animations, and along with a delay between updates, make
+our sprite look alive.
+
+If you look in the grfx folder you will see the file "spritesheet.png".  This holds the PacManClone frames.  Note we could have done with 6 less 
+frames if we allowed the blitter to handle rotation, but I'm making a point about animations here.
+
+We have 5 animations for our PacManClone: moving left, right, up, down, and dying.  The first 4 loop repeatedly and the last will stop when it reaches the end.
+If we set the correct animation for the given velocity, it will appear to move correctly.
+
+Here is an example of how we would animate a moving PacMan (note not the actual spritesheet since magenta would look horrible here).
+
+![Sprite Example](/images/PacManSpritesDemo.gif)
+
+Take a look at "include/spriteanimation.h" in the repo to see how it's done.  It's really just an array of ints and a counter.
+
+### Sprite placement and movement
+This is going to be very game dependent.  For example if you're making something like "Space Invaders", you'd only need to worry about movement along one axis.
+If you're doing something like "The Legend of Zelda" you could move along both axes at once anywhere on the screen (minus collision).
+
+For our PacManClone, we're going to keep it very close to the [original](http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html) and place our player
+sprite along the centerline of the tile it occupies.  The player can be moving in a maximum of one axis direction at a time.
+
+Since the player is twice the size of a tile, the graphics will overlap, but this is intentional, and in fact, our sprite must account for this offset when rendering.
+
+![Sprite Example](/images/SpritePlacement.png)
+
+This all might look complicated, but it makes collision checks extremely simple.  All we care about is what tile the sprite is in.  The tile is determined soley
+by its location (X,Y), and this is just a single point to determine on the grid.  But how to tell if a tile can be moved into?
+
+The flashing tiles below are considered legal space for the player to move.  If the sprite wants to move into a tile, we have to check if it's one of these.
+If it is not, then the input is essentially ignored.  If it is, then we need to snap the sprite to the new centerline (e.g. the red line in the image above 
+if the player wanted to move up) of that tile and set its new velocity and animation.
+
+![Sprite Example](/images/PacManFreeSpaceAnimation.gif)
+
+Since we already have the map and position as grids, we can add a new piece of data as an identically sized grid (array) that holds this info.
+
+{% highlight c++ %}
+// Constants.cpp
+Uint16 Constants::CollisionMap[MapRows * MapCols] =
+{
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1,
+    1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1,
+    1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1,
+    1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,0,1,
+    1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,0,1,
+    etc...
+};
+{% endhighlight %}
+
+Now collision checks are
+1. Calculate what cell the player is in
+2. Calculate what cell the player wants to move to based on velocity and/or input
+3. Is that cell legal space?  If not, stop moving, if so place it correctly if velocity changed
+
+And now you have a player sprite that responds to input!  More like a game than ever before.  If you build the code you should be able to 
+control movement with either the arrow keys or WASD.  If you press 'X' you'll trigger the death animation.  Just hit a directional key to
+turn the sprite back on.  You can also hit 'ESC' to exit the application.
+
+## Output
+___
+win32 (linux looks the same, compile it and see! I checked)
+
+![Running Win32 Application](/images/PMC03.gif)
+
+___
+ 
+### Coming soon
+Handling that wrap around, eating pellets, and how to tell when the level is over.
