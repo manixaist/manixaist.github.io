@@ -65,6 +65,7 @@ All you need to do is check this array each loop after processing the messages a
 
 ## Sprite class
 This is what we need in a sprite
+
 + Position (X, Y)
 + Velocity (DX, DY)
 + Array of frames belonging to the sprite
