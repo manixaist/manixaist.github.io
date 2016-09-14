@@ -163,6 +163,7 @@ Uint16 Constants::CollisionMap[MapRows * MapCols] =
 {% endhighlight %}
 
 Now collision checks are
+
 1. Calculate what cell the player is in
 2. Calculate what cell the player wants to move to based on velocity and/or input
 3. Is that cell legal space?  If not, stop moving, if so place it correctly if velocity changed

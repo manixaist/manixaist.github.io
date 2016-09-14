@@ -5,8 +5,8 @@
     <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects:&lt;/h4&gt;&lt;p/&gt;&lt;h4&gt;A collection of my hobbyist projects.&lt;/h4&gt;&lt;p/&gt;&lt;a href='http://xkcd.com/1724/'&gt;&lt;img src='http://imgs.xkcd.com/comics/proofs.png'/&gt;&lt;/a</description>
     <link>http://manixaist.github.io/</link>
     <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 14 Sep 2016 15:23:10 -0700</pubDate>
-    <lastBuildDate>Wed, 14 Sep 2016 15:23:10 -0700</lastBuildDate>
+    <pubDate>Wed, 14 Sep 2016 15:49:33 -0700</pubDate>
+    <lastBuildDate>Wed, 14 Sep 2016 15:49:33 -0700</lastBuildDate>
     <generator>Jekyll v3.2.1</generator>
     
       <item>
@@ -166,6 +166,7 @@ if the player wanted to move up) of that tile and set its new velocity and anima
 &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Now collision checks are&lt;/p&gt;
+
 &lt;ol&gt;
   &lt;li&gt;Calculate what cell the player is in&lt;/li&gt;
   &lt;li&gt;Calculate what cell the player wants to move to based on velocity and/or input&lt;/li&gt;
@@ -484,6 +485,7 @@ sudo apt-get libsdl2-image-dev&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h3 id=&quot;assumptions&quot;&gt;Assumptions&lt;/h3&gt;
 &lt;p&gt;My posts will assume a few things&lt;/p&gt;
+
 &lt;ul&gt;
   &lt;li&gt;Basic understanding of Git/Github&lt;/li&gt;
   &lt;li&gt;Basic C/C++ coding skills&lt;/li&gt;
