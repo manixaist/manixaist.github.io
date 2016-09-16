@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta content="manixaist.github.io" property="og:site_name">
+
+  <meta content="Cross Platform Game - 04" property="og:title">
+
+
+  <meta content="article" property="og:type">
+
+
+  <meta content="<h1>Developer Journal</h1><h4>Github pages for coding projects:</h4><p/><h4>A collection of my hobbyist projects.</h4><p/><a href='http://xkcd.com/1724/'><img src='http://imgs.xkcd.com/comics/proofs.png'/></a" property="og:description">
+
+
+  <meta content="http://manixaist.github.io/coding/game/xplat/2016/09/16/xplat-pmc-04.html" property="og:url">
+
+
+  <meta content="2016-09-16T15:05:00-07:00" property="article:published_time">
+  <meta content="http://manixaist.github.io/about/" property="article:author">
+
+
+  <meta property="og:image" content="">
+
+
+  
+  <meta content="coding" property="article:section">
+  
+
+
+  
+
+  <title>Cross Platform Game - 04</title>
+  <meta name="description" content="Eating the pellets, level completion and warping!Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the p...">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/css/main.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+  <link href='https://fonts.googleapis.com/css?family=PT+Sans' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Mono' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,200,300,500,600,700,900' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Gentium+Basic:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Alegreya:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,400italic,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,300,500,700' rel='stylesheet' type='text/css'>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-hQpvDQiCJaD2H465dQfA717v7lu5qHWtDbWNPvaTJ0ID5xnPUlVXnKzq7b8YUkbN" crossorigin="anonymous">
+  <link rel="canonical" href="http://manixaist.github.io/coding/game/xplat/2016/09/16/xplat-pmc-04.html">
+  <link rel="alternate" type="application/rss+xml" title="manixaist.github.io" href="http://manixaist.github.io/feed.xml">
+</head>
+
+
+  <body>
+<section>
+<nav class="navbar navbar-default navbar-fixed-top">
+
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">manixaist.github.io</a>
+    </div>
+
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        
+        
+
+        
+        
+
+        
+        
+
+        
+
+
+      </ul>
+
+    <!--  <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Know More!</a></li>
+
+      </ul>-->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+</section>
+
+<section>
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <div class="jumbotron">
+    <div class="container">
+      <h1 class="post-title-main" itemprop="name headline">Cross Platform Game - 04</h1>
+      <p class="post-meta"><time datetime="2016-09-16T15:05:00-07:00" itemprop="datePublished">Sep 16, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">manixaist</span></span></p>
+      
+    </div>
+
+</div>
+
+
+  <div class="post-content container" itemprop="articleBody">
+    <h1 id="eating-the-pellets-level-completion-and-warping">Eating the pellets, level completion and warping!</h1>
+<p>Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the player can do mid screen.  We’ll also add a detection case for the level being done and animated the map for a brief perdiod.</p>
+
+<p>Behold our end goal for today!</p>
+
+<p><img src="/images/PMC04.gif" alt="Running Win32 Application" /></p>
+
+<hr />
+
+<h2 id="goals-for-today">Goals for Today</h2>
+<ul>
+  <li>Manage the state of the overall game</li>
+  <li>Specialize our tiled map</li>
+  <li>Eat dots the player collides with and track the total</li>
+  <li>Track when the level is complete and flash the maze</li>
+  <li>Handle warping at the level midpoint (last player move)</li>
+</ul>
+
+<h3 id="assumptions">Assumptions</h3>
+<ul>
+  <li>You went through the previous post(s)</li>
+</ul>
+
+<hr />
+
+<h4 id="github-repohttpsgithubcommanixaistxplat-pmc-tutorial-04"><a href="https://github.com/manixaist/xplat-pmc-tutorial-04">Github repo</a></h4>
+
+<h2 id="setup">Setup:</h2>
+<p>None needed this time!  No new libraries!</p>
+
+<h2 id="game-states">Game States</h2>
+<p>We now need to start accounting for various states our game could be in.  For example, a typical game has a title screen, maybe a demo that plays, credits, the actual game itself (but even there is usually a subset of states), entering your name for the hi-score, etc.
+Based on what state we’re in, we’re going to invoke different logic routines to handle it while leaving the drawing and timing code common.</p>
+
+<p>To do this we need a very simple state machine, and we’ll use an enum to capture the various states.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">enum</span> <span class="k">class</span> <span class="nc">GameState</span>
+<span class="p">{</span>
+    <span class="n">Title</span><span class="p">,</span>                  <span class="c1">// Eventual Title screen
+</span>    <span class="n">LoadingLevel</span><span class="p">,</span>           <span class="c1">// Loading up the default map
+</span>    <span class="n">WaitingToStartLevel</span><span class="p">,</span>    <span class="c1">// Starting animation (gives the player a chance to get bearings)
+</span>    <span class="n">Running</span><span class="p">,</span>                <span class="c1">// Playing - most time should be in here! :)
+</span>    <span class="n">PlayerWarpingOut</span><span class="p">,</span>       <span class="c1">// Exiting maze through warp tunnel
+</span>    <span class="n">PlayerWarpingIn</span><span class="p">,</span>        <span class="c1">// Entering maze from warp tunnel
+</span>    <span class="n">PlayerDying</span><span class="p">,</span>            <span class="c1">// Got caught by a ghost
+</span>    <span class="n">LevelComplete</span><span class="p">,</span>          <span class="c1">// Ate all the pellets on the current level
+</span>    <span class="n">GameOver</span><span class="p">,</span>               <span class="c1">// All lives are gone 
+</span>    <span class="n">Exiting</span>                 <span class="c1">// App is closing
+</span><span class="p">};</span></code></pre></figure>
+
+<p>Now we move all the game code that was sitting in main.cpp into its own class that tracks the state (see gameharness.cpp/h) and delegate based on the current state.</p>
+
+<p>For example (see the repo for the full code)</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="c1">// Main loop, process window messages and dispatch to the current GameState handler
+</span><span class="kt">void</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">Run</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="n">fQuit</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="n">SDL_Event</span> <span class="n">eventSDL</span><span class="p">;</span>
+
+    <span class="n">Uint32</span> <span class="n">startTicks</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">fQuit</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">startTicks</span> <span class="o">=</span> <span class="n">SDL_GetTicks</span><span class="p">();</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">SDL_PollEvent</span><span class="p">(</span><span class="o">&amp;</span><span class="n">eventSDL</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">eventSDL</span><span class="p">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SDL_QUIT</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">fQuit</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fQuit</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">switch</span> <span class="p">(</span><span class="n">_state</span><span class="p">)</span>
+            <span class="p">{</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">Title</span><span class="o">:</span>
+                <span class="c1">// Skipping this for now
+</span>                <span class="n">_state</span> <span class="o">=</span> <span class="n">GameState</span><span class="o">::</span><span class="n">LoadingLevel</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">LoadingLevel</span><span class="o">:</span>
+                <span class="c1">// Loads the current maze and the sprites if needed
+</span>                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnLoading</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">WaitingToStartLevel</span><span class="o">:</span>
+                <span class="c1">// Small delay before level starts
+</span>                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnWaitingToStartLevel</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">PlayerWarpingOut</span><span class="o">:</span>
+                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnPlayerWarpingOut</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">PlayerWarpingIn</span><span class="o">:</span>
+                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnPlayerWarpingIn</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">Running</span><span class="o">:</span>
+                <span class="c1">// Normal gameplay
+</span>                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnRunning</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">PlayerDying</span><span class="o">:</span>
+                <span class="c1">// Death animation, skip for now since no ghosts
+</span>                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">LevelComplete</span><span class="o">:</span>
+                <span class="c1">// Flashing level animation
+</span>                <span class="n">_state</span> <span class="o">=</span> <span class="n">OnLevelComplete</span><span class="p">();</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">GameOver</span><span class="o">:</span>
+                <span class="c1">// Final drawing of level, score, etc
+</span>                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="n">GameState</span><span class="p">:</span><span class="o">:</span><span class="n">Exiting</span><span class="o">:</span>
+                <span class="n">fQuit</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="c1">// Draw the current frame
+</span>            <span class="n">Render</span><span class="p">();</span>
+
+            <span class="c1">// TIMING
+</span>            <span class="c1">// Fix this at ~c_framesPerSecond
+</span>            <span class="n">Uint32</span> <span class="n">endTicks</span> <span class="o">=</span> <span class="n">SDL_GetTicks</span><span class="p">();</span>
+            <span class="n">Uint32</span> <span class="n">elapsedTicks</span> <span class="o">=</span> <span class="n">endTicks</span> <span class="o">-</span> <span class="n">startTicks</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">elapsedTicks</span> <span class="o">&lt;</span> <span class="n">Constants</span><span class="o">::</span><span class="n">TicksPerFrame</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="n">SDL_Delay</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">TicksPerFrame</span> <span class="o">-</span> <span class="n">elapsedTicks</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// cleanup
+</span>    <span class="n">Cleanup</span><span class="p">();</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>As you can see, the decision making is a simple switch statement.  Each handler returns a new GameState (which could be the same) and then the transition will happen on the next frame through the loop.</p>
+
+<h2 id="making-our-tiledmap-a-maze">Making Our TiledMap a Maze</h2>
+<p>It would be nice if we could ask our tiled map if a given cell was a pellet, or a large pellet, or a wall, etc.  We could just change the class to do this; add some specific methods and be done.  However, we can keep that code more generic and just create a new class that derives from TiledMap.  This way you can always fork the more generic code to another project later.</p>
+
+<p>All it requires in this case is making the privates into protecteds for the TiledMap class and adding this small wrapper.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#pragma once
+#include "constants.h"
+#include "tiledmap.h"
+</span>
+<span class="k">namespace</span> <span class="n">XplatGameTutorial</span>
+<span class="p">{</span>
+<span class="k">namespace</span> <span class="n">PacManClone</span>
+<span class="p">{</span>
+    <span class="c1">// Derived class that adds information to the TiledMap specific to the PacManClone
+</span>    <span class="c1">// maze, such as collision detection with walls and pellets.
+</span>    <span class="k">class</span> <span class="nc">Maze</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TiledMap</span>
+    <span class="p">{</span>
+    <span class="k">public</span><span class="o">:</span>
+        <span class="n">Maze</span><span class="p">(</span><span class="k">const</span> <span class="n">Uint16</span> <span class="n">rows</span><span class="p">,</span> <span class="k">const</span> <span class="n">Uint16</span> <span class="n">cols</span><span class="p">,</span> <span class="n">Uint16</span> <span class="n">cxScreen</span><span class="p">,</span> <span class="n">Uint16</span> <span class="n">cyScreen</span><span class="p">)</span> <span class="o">:</span>
+            <span class="n">XplatGameTutorial</span><span class="o">::</span><span class="n">PacManClone</span><span class="o">::</span><span class="n">TiledMap</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">cxScreen</span><span class="p">,</span> <span class="n">cyScreen</span><span class="p">)</span>
+        <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="k">virtual</span> <span class="o">~</span><span class="n">Maze</span><span class="p">()</span>
+        <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="n">SDL_bool</span> <span class="n">IsTilePellet</span><span class="p">(</span><span class="n">Uint16</span> <span class="n">row</span><span class="p">,</span> <span class="n">Uint16</span> <span class="n">col</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">GetTileIndexAt</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">GetTileIndexAt</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">13</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="k">return</span> <span class="n">SDL_TRUE</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="n">SDL_FALSE</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">void</span> <span class="n">EatPellet</span><span class="p">(</span><span class="n">Uint16</span> <span class="n">row</span><span class="p">,</span> <span class="n">Uint16</span> <span class="n">col</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">SDL_assert</span><span class="p">((</span><span class="n">GetTileIndexAt</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">GetTileIndexAt</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">13</span><span class="p">));</span>
+            <span class="n">SetTileIndexAt</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="mi">49</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">SDL_bool</span> <span class="n">IsTileSolid</span><span class="p">(</span><span class="n">Uint16</span> <span class="n">row</span><span class="p">,</span> <span class="n">Uint16</span> <span class="n">col</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">CollisionMap</span><span class="p">[</span>
+                <span class="n">row</span> <span class="o">*</span> <span class="n">Constants</span><span class="o">::</span><span class="n">MapCols</span> <span class="o">+</span> <span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">?</span> <span class="n">SDL_TRUE</span> <span class="o">:</span> <span class="n">SDL_FALSE</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">void</span> <span class="n">Render</span><span class="p">(</span><span class="n">SDL_Renderer</span> <span class="o">*</span><span class="n">pSDLRenderer</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">TiledMap</span><span class="o">::</span><span class="n">Render</span><span class="p">(</span><span class="n">pSDLRenderer</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="eating-pellets">Eating pellets</h2>
+<p>Because we’ve already written code to look up the contents of a tile at a given x,y coordinate, this detection is dead simple.  All we do is check the contents of the player’s current cell and if it’s either a small or large pellet (we make no distinction at this point) then we’re going to replace that tile with a ‘blank’ one and increment a counter.  Once this counter hits 244 (the predefined number on the level) the level will be successfully complete (hey we solved that other problem already)</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">Uint16</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">HandlePelletCollision</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">Uint16</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">SDL_Point</span> <span class="n">playerPoint</span> <span class="o">=</span> <span class="p">{</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">X</span><span class="p">(),</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Y</span><span class="p">()</span> <span class="p">};</span>
+    <span class="n">Uint16</span> <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">Uint16</span> <span class="n">col</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">GetTileRowCol</span><span class="p">(</span><span class="n">playerPoint</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">IsTilePellet</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">EatPellet</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">);</span>
+        <span class="n">ret</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="level-over">Level over</h2>
+
+<p><img src="/images/PMC04_02.gif" alt="Running Win32 Application" /></p>
+
+<p>We just saw how easy this part was, count the tile replacements until we reach 244…but then what?  We need to take control away from the player, flash the screen a bit, then start over, like so.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">GameHarness</span><span class="o">::</span><span class="n">GameState</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">OnLevelComplete</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="n">StateTimer</span> <span class="n">timer</span><span class="p">;</span>
+    <span class="k">static</span> <span class="n">Uint16</span> <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">static</span> <span class="kt">bool</span> <span class="n">flip</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">timer</span><span class="p">.</span><span class="n">IsStarted</span><span class="p">())</span>
+    <span class="p">{</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">flip</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+        <span class="n">timer</span><span class="p">.</span><span class="n">Start</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">LevelCompleteDelay</span><span class="p">);</span>
+    <span class="p">}</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">counter</span><span class="o">++</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">flip</span> <span class="o">=</span> <span class="o">!</span><span class="n">flip</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// This will add a blue multiplier to the texture, making the shade chage.
+</span>    <span class="c1">// We flip this back and forth roughly every second until the overall timer is done.
+</span>    <span class="n">SDL_SetTextureColorMod</span><span class="p">(</span><span class="n">_pTilesTexture</span><span class="o">-&gt;</span><span class="n">Ptr</span><span class="p">(),</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="n">flip</span> <span class="o">?</span> <span class="mi">100</span> <span class="o">:</span> <span class="mi">255</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">timer</span><span class="p">.</span><span class="n">IsDone</span><span class="p">())</span>
+    <span class="p">{</span>
+        <span class="n">timer</span><span class="p">.</span><span class="n">Reset</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">GameState</span><span class="o">::</span><span class="n">LoadingLevel</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">GameState</span><span class="o">::</span><span class="n">LevelComplete</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Since each pass through is 1/60 of a frame, we need a way to know when some total time has elapsed.  We don’t need anything fancy, so a small timer class I added will do (there are countless timer classes out there).</p>
+
+<p>This is the entire class</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp">    <span class="c1">// Oneshot timer for state transistions
+</span>    <span class="k">class</span> <span class="nc">StateTimer</span>
+    <span class="p">{</span>
+    <span class="k">public</span><span class="o">:</span>
+        <span class="n">StateTimer</span><span class="p">()</span> <span class="o">:</span> <span class="n">_startTicks</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">_targetTicks</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">_fStarted</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span>
+        <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="kt">void</span> <span class="n">Start</span><span class="p">(</span><span class="n">Uint32</span> <span class="n">waitTicks</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">SDL_assert</span><span class="p">(</span><span class="o">!</span><span class="n">_fStarted</span><span class="p">);</span>
+            <span class="n">SDL_assert</span><span class="p">(</span><span class="n">_startTicks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+            <span class="n">_startTicks</span> <span class="o">=</span> <span class="n">SDL_GetTicks</span><span class="p">();</span>
+            <span class="n">_targetTicks</span> <span class="o">=</span> <span class="n">waitTicks</span><span class="p">;</span>
+            <span class="n">_fStarted</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">void</span> <span class="n">Reset</span><span class="p">()</span> <span class="p">{</span> <span class="n">_fStarted</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span> <span class="n">_startTicks</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">}</span>
+        <span class="kt">bool</span> <span class="n">IsStarted</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_fStarted</span><span class="p">;</span> <span class="p">}</span>
+        <span class="kt">bool</span> <span class="n">IsDone</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">IsStarted</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">SDL_GetTicks</span><span class="p">()</span> <span class="o">-</span> <span class="n">_startTicks</span> <span class="o">&gt;</span> <span class="n">_targetTicks</span><span class="p">);</span> <span class="p">}</span>
+    <span class="k">private</span><span class="o">:</span>
+        <span class="n">Uint32</span> <span class="n">_startTicks</span><span class="p">;</span>
+        <span class="n">Uint32</span> <span class="n">_targetTicks</span><span class="p">;</span>
+        <span class="kt">bool</span> <span class="n">_fStarted</span><span class="p">;</span>
+
+    <span class="p">};</span></code></pre></figure>
+
+<h2 id="warping">Warping</h2>
+<p>This was kind of a pain, but only because I insisted on making it more complicated than it needed to be.  The simple solution is below.</p>
+
+<p>There are only 2 cells on the board where warping can start [17,0] and [17,27] the outer edges of the mid row of the maze.  If a player enters either of these cells from normal play, they enter the “WarpingOut” state.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="kt">bool</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">IsPlayerWarpingOut</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">SDL_Point</span> <span class="n">playerPoint</span> <span class="o">=</span> <span class="p">{</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">X</span><span class="p">(),</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Y</span><span class="p">()</span> <span class="p">};</span>
+    <span class="n">Uint16</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">;</span>
+    <span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">GetTileRowCol</span><span class="p">(</span><span class="n">playerPoint</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">row</span> <span class="o">==</span> <span class="mi">17</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">((</span><span class="n">col</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">col</span> <span class="o">==</span> <span class="mi">27</span><span class="p">)));</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>In the handler code we now just maintain the current velocity (player input is ignored) until the sprite is off the screen (or outside of the clipping rect) in this case.  Once that happens, we move the sprite just outside the clipping rect on the other side and continue to let it move.  We also switch states to “WarpingIn”.</p>
+
+<p>Now we wait until the player is 1 column “inside” from the edge and then we return normal control to the player.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="c1">// Assume control of the player sprite while warping in.  Control is returned to 
+// the player once we're 1 col "in"
+</span><span class="n">GameHarness</span><span class="o">::</span><span class="n">GameState</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">OnPlayerWarpingIn</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// Maintain current velocity until we're back in frame
+</span>    <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Update</span><span class="p">();</span>
+
+    <span class="n">SDL_Point</span> <span class="n">playerPoint</span> <span class="o">=</span> <span class="p">{</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">X</span><span class="p">(),</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Y</span><span class="p">()</span> <span class="p">};</span>
+    <span class="n">Uint16</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">;</span>
+    <span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">GetTileRowCol</span><span class="p">(</span><span class="n">playerPoint</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">row</span> <span class="o">==</span> <span class="n">Constants</span><span class="o">::</span><span class="n">WarpRow</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">((</span><span class="n">col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">col</span> <span class="o">==</span> <span class="n">Constants</span><span class="o">::</span><span class="n">MapCols</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span>
+    <span class="p">{</span>
+        <span class="n">_state</span> <span class="o">=</span> <span class="n">GameState</span><span class="o">::</span><span class="n">Running</span><span class="p">;</span>
+    <span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">_state</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Assume control of the player while warping out.  Once the sprite is off the visible
+// screen, we reposition it on the other side of the map and transition to "WarpingIn"
+</span><span class="n">GameHarness</span><span class="o">::</span><span class="n">GameState</span> <span class="n">GameHarness</span><span class="o">::</span><span class="n">OnPlayerWarpingOut</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// Maintain current velocity until we're out of frame
+</span>    <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Update</span><span class="p">();</span>
+    
+    <span class="n">SDL_Rect</span> <span class="n">mapRect</span> <span class="o">=</span> <span class="n">_pMaze</span><span class="o">-&gt;</span><span class="n">GetMapBounds</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">X</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">mapRect</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">mapRect</span><span class="p">.</span><span class="n">w</span> <span class="o">+</span> <span class="n">Constants</span><span class="o">::</span><span class="n">PlayerSpriteWidth</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">ResetPosition</span><span class="p">(</span><span class="n">mapRect</span><span class="p">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">Constants</span><span class="o">::</span><span class="n">PlayerSpriteWidth</span><span class="p">,</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Y</span><span class="p">());</span>
+        <span class="n">_state</span> <span class="o">=</span> <span class="n">GameState</span><span class="o">::</span><span class="n">PlayerWarpingIn</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">X</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">mapRect</span><span class="p">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">Constants</span><span class="o">::</span><span class="n">PlayerSpriteWidth</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">ResetPosition</span><span class="p">(</span><span class="n">mapRect</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">mapRect</span><span class="p">.</span><span class="n">w</span> <span class="o">+</span> <span class="n">Constants</span><span class="o">::</span><span class="n">PlayerSpriteWidth</span><span class="p">,</span> <span class="n">_pPlayerSprite</span><span class="o">-&gt;</span><span class="n">Y</span><span class="p">());</span>
+        <span class="n">_state</span> <span class="o">=</span> <span class="n">GameState</span><span class="o">::</span><span class="n">PlayerWarpingIn</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">_state</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="output">Output</h2>
+<hr />
+<p>win32 (linux looks the same, compile it and see! I checked)</p>
+
+<p><img src="/images/PMC04.gif" alt="Running Win32 Application" /></p>
+
+<hr />
+
+<h3 id="coming-soon">Coming soon</h3>
+<p>Ghosts!</p>
+
+
+  </div>
+
+</article>
+
+</section>
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container footer-content">
+    <p>2016-09-16 15:05:00 -0700</p>
+  </div>
+</nav>
+
+
+  </body>
+
+</html>

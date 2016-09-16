@@ -1,0 +1,367 @@
+---
+layout: post
+title:  "Cross Platform Game - 04"
+date:   2016-09-16 15:05:00 -0700
+categories: coding game xplat
+author: "manixaist"
+---
+
+
+# Eating the pellets, level completion and warping!
+Today we're covering eating the pellets and a special movement case to handle the "warp" or wraparound the player can do mid screen.  We'll also add a detection case for the level being done and animated the map for a brief perdiod.
+
+Behold our end goal for today!
+
+![Running Win32 Application](/images/PMC04.gif)
+
+___
+
+## Goals for Today
++ Manage the state of the overall game
++ Specialize our tiled map
++ Eat dots the player collides with and track the total
++ Track when the level is complete and flash the maze
++ Handle warping at the level midpoint (last player move)
+
+### Assumptions
++ You went through the previous post(s)
+
+___
+
+#### [Github repo](https://github.com/manixaist/xplat-pmc-tutorial-04)
+
+## Setup: 
+None needed this time!  No new libraries!
+
+## Game States
+We now need to start accounting for various states our game could be in.  For example, a typical game has a title screen, maybe a demo that plays, credits, the actual game itself (but even there is usually a subset of states), entering your name for the hi-score, etc.
+Based on what state we're in, we're going to invoke different logic routines to handle it while leaving the drawing and timing code common.
+
+To do this we need a very simple state machine, and we'll use an enum to capture the various states.
+{% highlight cpp %}
+enum class GameState
+{
+    Title,                  // Eventual Title screen
+    LoadingLevel,           // Loading up the default map
+    WaitingToStartLevel,    // Starting animation (gives the player a chance to get bearings)
+    Running,                // Playing - most time should be in here! :)
+    PlayerWarpingOut,       // Exiting maze through warp tunnel
+    PlayerWarpingIn,        // Entering maze from warp tunnel
+    PlayerDying,            // Got caught by a ghost
+    LevelComplete,          // Ate all the pellets on the current level
+    GameOver,               // All lives are gone 
+    Exiting                 // App is closing
+};
+{% endhighlight %}
+
+Now we move all the game code that was sitting in main.cpp into its own class that tracks the state (see gameharness.cpp/h) and delegate based on the current state.
+
+For example (see the repo for the full code)
+{% highlight cpp %}
+// Main loop, process window messages and dispatch to the current GameState handler
+void GameHarness::Run()
+{
+    static bool fQuit = false;
+    SDL_Event eventSDL;
+
+    Uint32 startTicks;
+    while (!fQuit)
+    {
+        startTicks = SDL_GetTicks();
+        while (SDL_PollEvent(&eventSDL) != 0)
+        {
+            if (eventSDL.type == SDL_QUIT)
+            {
+                fQuit = true;
+            }
+        }
+
+        if (!fQuit)
+        {
+            switch (_state)
+            {
+            case GameState::Title:
+                // Skipping this for now
+                _state = GameState::LoadingLevel;
+                break;
+            case GameState::LoadingLevel:
+                // Loads the current maze and the sprites if needed
+                _state = OnLoading();
+                break;
+            case GameState::WaitingToStartLevel:
+                // Small delay before level starts
+                _state = OnWaitingToStartLevel();
+                break;
+            case GameState::PlayerWarpingOut:
+                _state = OnPlayerWarpingOut();
+                break;
+            case GameState::PlayerWarpingIn:
+                _state = OnPlayerWarpingIn();
+                break;
+            case GameState::Running:
+                // Normal gameplay
+                _state = OnRunning();
+                break;
+            case GameState::PlayerDying:
+                // Death animation, skip for now since no ghosts
+                break;
+            case GameState::LevelComplete:
+                // Flashing level animation
+                _state = OnLevelComplete();
+                break;
+            case GameState::GameOver:
+                // Final drawing of level, score, etc
+                break;
+            case GameState::Exiting:
+                fQuit = true;
+                break;
+            }
+
+            // Draw the current frame
+            Render();
+
+            // TIMING
+            // Fix this at ~c_framesPerSecond
+            Uint32 endTicks = SDL_GetTicks();
+            Uint32 elapsedTicks = endTicks - startTicks;
+            if (elapsedTicks < Constants::TicksPerFrame)
+            {
+                SDL_Delay(Constants::TicksPerFrame - elapsedTicks);
+            }
+        }
+    }
+
+    // cleanup
+    Cleanup();
+}
+{% endhighlight %}
+
+As you can see, the decision making is a simple switch statement.  Each handler returns a new GameState (which could be the same) and then the transition will happen on the next frame through the loop.
+
+## Making Our TiledMap a Maze
+It would be nice if we could ask our tiled map if a given cell was a pellet, or a large pellet, or a wall, etc.  We could just change the class to do this; add some specific methods and be done.  However, we can keep that code more generic and just create a new class that derives from TiledMap.  This way you can always fork the more generic code to another project later.
+
+All it requires in this case is making the privates into protecteds for the TiledMap class and adding this small wrapper.
+
+{% highlight cpp %}
+#pragma once
+#include "constants.h"
+#include "tiledmap.h"
+
+namespace XplatGameTutorial
+{
+namespace PacManClone
+{
+    // Derived class that adds information to the TiledMap specific to the PacManClone
+    // maze, such as collision detection with walls and pellets.
+    class Maze : public TiledMap
+    {
+    public:
+        Maze(const Uint16 rows, const Uint16 cols, Uint16 cxScreen, Uint16 cyScreen) :
+            XplatGameTutorial::PacManClone::TiledMap(rows, cols, cxScreen, cyScreen)
+        {
+        }
+
+        virtual ~Maze()
+        {
+        }
+
+        SDL_bool IsTilePellet(Uint16 row, Uint16 col)
+        {
+            if ((GetTileIndexAt(row, col) == 16) || (GetTileIndexAt(row, col) == 13))
+            {
+                return SDL_TRUE;
+            }
+            return SDL_FALSE;
+        }
+
+        void EatPellet(Uint16 row, Uint16 col)
+        {
+            SDL_assert((GetTileIndexAt(row, col) == 16) || (GetTileIndexAt(row, col) == 13));
+            SetTileIndexAt(row, col, 49);
+        }
+
+        SDL_bool IsTileSolid(Uint16 row, Uint16 col)
+        {
+            return (Constants::CollisionMap[
+                row * Constants::MapCols + col] == 1) ? SDL_TRUE : SDL_FALSE;
+        }
+
+        void Render(SDL_Renderer *pSDLRenderer)
+        {
+            TiledMap::Render(pSDLRenderer);
+        }
+    };
+}
+}
+{% endhighlight %}
+
+## Eating pellets
+Because we've already written code to look up the contents of a tile at a given x,y coordinate, this detection is dead simple.  All we do is check the contents of the player's current cell and if it's either a small or large pellet (we make no distinction at this point) then we're going to replace that tile with a 'blank' one and increment a counter.  Once this counter hits 244 (the predefined number on the level) the level will be successfully complete (hey we solved that other problem already)
+
+{% highlight cpp %}
+Uint16 GameHarness::HandlePelletCollision()
+{
+    Uint16 ret = 0;
+    SDL_Point playerPoint = { _pPlayerSprite->X(), _pPlayerSprite->Y() };
+    Uint16 row = 0;
+    Uint16 col = 0;
+    _pMaze->GetTileRowCol(playerPoint, row, col);
+
+    if (_pMaze->IsTilePellet(row, col))
+    {
+        _pMaze->EatPellet(row, col);
+        ret++;
+    }
+    return ret;
+}
+{% endhighlight %}
+
+## Level over
+
+![Running Win32 Application](/images/PMC04_02.gif)
+
+We just saw how easy this part was, count the tile replacements until we reach 244...but then what?  We need to take control away from the player, flash the screen a bit, then start over, like so.
+
+{% highlight cpp %}
+GameHarness::GameState GameHarness::OnLevelComplete()
+{
+    static StateTimer timer;
+    static Uint16 counter = 0;
+    static bool flip;
+
+    if (!timer.IsStarted())
+    {
+        counter = 0;
+        flip = false;
+        timer.Start(Constants::LevelCompleteDelay);
+    }
+    
+    if (counter++ > 60)
+    {
+        counter = 0;
+        flip = !flip;
+    }
+
+    // This will add a blue multiplier to the texture, making the shade chage.
+    // We flip this back and forth roughly every second until the overall timer is done.
+    SDL_SetTextureColorMod(_pTilesTexture->Ptr(), 255, 255, flip ? 100 : 255);
+    
+    if (timer.IsDone())
+    {
+        timer.Reset();
+        return GameState::LoadingLevel;
+    }
+    return GameState::LevelComplete;
+}
+{% endhighlight %}
+
+Since each pass through is 1/60 of a frame, we need a way to know when some total time has elapsed.  We don't need anything fancy, so a small timer class I added will do (there are countless timer classes out there).
+
+
+
+
+
+This is the entire class
+{% highlight cpp %}
+    // Oneshot timer for state transistions
+    class StateTimer
+    {
+    public:
+        StateTimer() : _startTicks(0), _targetTicks(0), _fStarted(false)
+        {
+        }
+
+        void Start(Uint32 waitTicks)
+        {
+            SDL_assert(!_fStarted);
+            SDL_assert(_startTicks == 0);
+            _startTicks = SDL_GetTicks();
+            _targetTicks = waitTicks;
+            _fStarted = true;
+        }
+
+        void Reset() { _fStarted = false; _startTicks = 0; }
+        bool IsStarted() { return _fStarted; }
+        bool IsDone() { return IsStarted() && (SDL_GetTicks() - _startTicks > _targetTicks); }
+    private:
+        Uint32 _startTicks;
+        Uint32 _targetTicks;
+        bool _fStarted;
+
+    };
+{% endhighlight %}
+
+
+
+## Warping
+This was kind of a pain, but only because I insisted on making it more complicated than it needed to be.  The simple solution is below.
+
+There are only 2 cells on the board where warping can start [17,0] and [17,27] the outer edges of the mid row of the maze.  If a player enters either of these cells from normal play, they enter the "WarpingOut" state.
+
+{% highlight cpp %}
+bool GameHarness::IsPlayerWarpingOut()
+{
+    SDL_Point playerPoint = { _pPlayerSprite->X(), _pPlayerSprite->Y() };
+    Uint16 row, col;
+    _pMaze->GetTileRowCol(playerPoint, row, col);
+    return ((row == 17) && ((col == 0) || (col == 27)));
+}
+{% endhighlight %}
+
+In the handler code we now just maintain the current velocity (player input is ignored) until the sprite is off the screen (or outside of the clipping rect) in this case.  Once that happens, we move the sprite just outside the clipping rect on the other side and continue to let it move.  We also switch states to "WarpingIn".
+
+Now we wait until the player is 1 column "inside" from the edge and then we return normal control to the player.
+
+{% highlight cpp %}
+// Assume control of the player sprite while warping in.  Control is returned to 
+// the player once we're 1 col "in"
+GameHarness::GameState GameHarness::OnPlayerWarpingIn()
+{
+    // Maintain current velocity until we're back in frame
+    _pPlayerSprite->Update();
+
+    SDL_Point playerPoint = { _pPlayerSprite->X(), _pPlayerSprite->Y() };
+    Uint16 row, col;
+    _pMaze->GetTileRowCol(playerPoint, row, col);
+    if ((row == Constants::WarpRow) && ((col == 1) || (col == Constants::MapCols - 2)))
+    {
+        _state = GameState::Running;
+    }
+    
+    return _state;
+}
+
+// Assume control of the player while warping out.  Once the sprite is off the visible
+// screen, we reposition it on the other side of the map and transition to "WarpingIn"
+GameHarness::GameState GameHarness::OnPlayerWarpingOut()
+{
+    // Maintain current velocity until we're out of frame
+    _pPlayerSprite->Update();
+    
+    SDL_Rect mapRect = _pMaze->GetMapBounds();
+    if (_pPlayerSprite->X() > mapRect.x + mapRect.w + Constants::PlayerSpriteWidth)
+    {
+        _pPlayerSprite->ResetPosition(mapRect.x - Constants::PlayerSpriteWidth, _pPlayerSprite->Y());
+        _state = GameState::PlayerWarpingIn;
+    }
+    else if (_pPlayerSprite->X() < mapRect.x - Constants::PlayerSpriteWidth)
+    {
+        _pPlayerSprite->ResetPosition(mapRect.x + mapRect.w + Constants::PlayerSpriteWidth, _pPlayerSprite->Y());
+        _state = GameState::PlayerWarpingIn;
+    }
+    return _state;
+}
+{% endhighlight %}
+
+## Output
+___
+win32 (linux looks the same, compile it and see! I checked)
+
+![Running Win32 Application](/images/PMC04.gif)
+
+___
+ 
+### Coming soon
+Ghosts!
+
