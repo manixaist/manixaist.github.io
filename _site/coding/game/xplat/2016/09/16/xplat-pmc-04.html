@@ -113,7 +113,7 @@
 
   <div class="post-content container" itemprop="articleBody">
     <h1 id="eating-the-pellets-level-completion-and-warping">Eating the pellets, level completion and warping!</h1>
-<p>Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the player can do mid screen.  We’ll also add a detection case for the level being done and animated the map for a brief perdiod.</p>
+<p>Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the player can do mid screen.  We’ll also add a detection case for the level being done and animated the map for a brief period.</p>
 
 <p>Behold our end goal for today!</p>
 
@@ -152,7 +152,7 @@ Based on what state we’re in, we’re going to invoke different logic routines
 <span class="p">{</span>
     <span class="n">Title</span><span class="p">,</span>                  <span class="c1">// Eventual Title screen
 </span>    <span class="n">LoadingLevel</span><span class="p">,</span>           <span class="c1">// Loading up the default map
-</span>    <span class="n">WaitingToStartLevel</span><span class="p">,</span>    <span class="c1">// Starting animation (gives the player a chance to get bearings)
+</span>    <span class="n">WaitingToStartLevel</span><span class="p">,</span>    <span class="c1">// Starting animation
 </span>    <span class="n">Running</span><span class="p">,</span>                <span class="c1">// Playing - most time should be in here! :)
 </span>    <span class="n">PlayerWarpingOut</span><span class="p">,</span>       <span class="c1">// Exiting maze through warp tunnel
 </span>    <span class="n">PlayerWarpingIn</span><span class="p">,</span>        <span class="c1">// Entering maze from warp tunnel

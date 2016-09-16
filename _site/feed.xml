@@ -5,14 +5,14 @@
     <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects:&lt;/h4&gt;&lt;p/&gt;&lt;h4&gt;A collection of my hobbyist projects.&lt;/h4&gt;&lt;p/&gt;&lt;a href='http://xkcd.com/1724/'&gt;&lt;img src='http://imgs.xkcd.com/comics/proofs.png'/&gt;&lt;/a</description>
     <link>http://manixaist.github.io/</link>
     <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 16 Sep 2016 16:29:27 -0700</pubDate>
-    <lastBuildDate>Fri, 16 Sep 2016 16:29:27 -0700</lastBuildDate>
+    <pubDate>Fri, 16 Sep 2016 16:36:57 -0700</pubDate>
+    <lastBuildDate>Fri, 16 Sep 2016 16:36:57 -0700</lastBuildDate>
     <generator>Jekyll v3.2.1</generator>
     
       <item>
         <title>Cross Platform Game - 04</title>
         <description>&lt;h1 id=&quot;eating-the-pellets-level-completion-and-warping&quot;&gt;Eating the pellets, level completion and warping!&lt;/h1&gt;
-&lt;p&gt;Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the player can do mid screen.  We’ll also add a detection case for the level being done and animated the map for a brief perdiod.&lt;/p&gt;
+&lt;p&gt;Today we’re covering eating the pellets and a special movement case to handle the “warp” or wraparound the player can do mid screen.  We’ll also add a detection case for the level being done and animated the map for a brief period.&lt;/p&gt;
 
 &lt;p&gt;Behold our end goal for today!&lt;/p&gt;
 
@@ -51,7 +51,7 @@ Based on what state we’re in, we’re going to invoke different logic routines
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;Title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;                  &lt;span class=&quot;c1&quot;&gt;// Eventual Title screen
 &lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;LoadingLevel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;           &lt;span class=&quot;c1&quot;&gt;// Loading up the default map
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;WaitingToStartLevel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// Starting animation (gives the player a chance to get bearings)
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;WaitingToStartLevel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// Starting animation
 &lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;Running&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;                &lt;span class=&quot;c1&quot;&gt;// Playing - most time should be in here! :)
 &lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;PlayerWarpingOut&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;       &lt;span class=&quot;c1&quot;&gt;// Exiting maze through warp tunnel
 &lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;PlayerWarpingIn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// Entering maze from warp tunnel

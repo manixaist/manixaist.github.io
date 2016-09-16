@@ -8,7 +8,7 @@ author: "manixaist"
 
 
 # Eating the pellets, level completion and warping!
-Today we're covering eating the pellets and a special movement case to handle the "warp" or wraparound the player can do mid screen.  We'll also add a detection case for the level being done and animated the map for a brief perdiod.
+Today we're covering eating the pellets and a special movement case to handle the "warp" or wraparound the player can do mid screen.  We'll also add a detection case for the level being done and animated the map for a brief period.
 
 Behold our end goal for today!
 
@@ -43,7 +43,7 @@ enum class GameState
 {
     Title,                  // Eventual Title screen
     LoadingLevel,           // Loading up the default map
-    WaitingToStartLevel,    // Starting animation (gives the player a chance to get bearings)
+    WaitingToStartLevel,    // Starting animation
     Running,                // Playing - most time should be in here! :)
     PlayerWarpingOut,       // Exiting maze through warp tunnel
     PlayerWarpingIn,        // Entering maze from warp tunnel
