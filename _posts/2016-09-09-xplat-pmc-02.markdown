@@ -71,7 +71,7 @@ Check out [The Pac-Man Dossier Ch#3](http://hackipedia.org/Games/Arcade/Pac-man/
 
 The high points are, the grid is 28 cols by 36 rows.  The original game was 8px square per tile.  I'm going to bump that up to 16px, but otherwise the map will stay the same.
 
-I've created my own set of tiles using Photoshop (based on the original art or course) and placed them under a folder called "./grfx".
+I've created my own set of tiles using Photoshop (based on the original art of course) and placed them under a folder called "./grfx".
 
 ### Enable PNG in code and loading the texture
 Reminder: There are tons of SDL specific tutorials at [lazyfoo.net](http://lazyfoo.net/tutorials/SDL/) and I refer to them frequently.  I will point out specific features as we use them, but not in depth, I assume you can read the code and docs, and the SDL tutorials...
