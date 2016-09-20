@@ -5,9 +5,190 @@
     <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects:&lt;/h4&gt;&lt;p/&gt;&lt;h4&gt;A collection of my hobbyist projects.&lt;/h4&gt;&lt;p/&gt;&lt;a href='http://xkcd.com/1724/'&gt;&lt;img src='http://imgs.xkcd.com/comics/proofs.png'/&gt;&lt;/a</description>
     <link>http://manixaist.github.io/</link>
     <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 16 Sep 2016 17:25:59 -0700</pubDate>
-    <lastBuildDate>Fri, 16 Sep 2016 17:25:59 -0700</lastBuildDate>
+    <pubDate>Tue, 20 Sep 2016 16:05:31 -0700</pubDate>
+    <lastBuildDate>Tue, 20 Sep 2016 16:05:31 -0700</lastBuildDate>
     <generator>Jekyll v3.2.1</generator>
+    
+      <item>
+        <title>Cross Platform Game - 05</title>
+        <description>&lt;h1 id=&quot;enemy-ghosts-and-ai&quot;&gt;Enemy Ghosts and AI&lt;/h1&gt;
+&lt;p&gt;Today we add ghosts. Well 1 ghost, but we’re adding the code to get 95% of the way there for the remaining ghosts in the future.
+Our ghost today is Blinky - and he chases Pac-Man (clone) most directly.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/blinky.png&quot; alt=&quot;Blinky&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Behold our end goal for today!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/PMC05.gif&quot; alt=&quot;Running Win32 Application&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;goals-for-today&quot;&gt;Goals for Today&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;Describe ghost AI behavior&lt;/li&gt;
+  &lt;li&gt;Division of labor by class&lt;/li&gt;
+  &lt;li&gt;Branching decisions for AI (specific ghost behavior)&lt;/li&gt;
+  &lt;li&gt;Ghost Warping/Pen and States Revisited&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;assumptions&quot;&gt;Assumptions&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;You went through the previous post(s)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;github-repohttpsgithubcommanixaistxplat-pmc-tutorial-05&quot;&gt;&lt;a href=&quot;https://github.com/manixaist/xplat-pmc-tutorial-05&quot;&gt;Github repo&lt;/a&gt;&lt;/h4&gt;
+
+&lt;h2 id=&quot;ghost-ai-behavior&quot;&gt;Ghost AI Behavior&lt;/h2&gt;
+&lt;p&gt;Once again &lt;a href=&quot;http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html&quot;&gt;there are sources&lt;/a&gt; for all this Pac-Man info..&lt;/p&gt;
+
+&lt;p&gt;Summarized: when ghosts enter a new cell, they look ahead one tile from their current location and decide what to do once they eventually reach it.
+When they do (always once they get to the center) that previous decision is applied and a change in direction is applied if needed.  This means
+the ghosts are constantly swapping out these 2 “decisions” as they move through the maze.&lt;/p&gt;
+
+&lt;h3 id=&quot;so-how-is-that-decision-made&quot;&gt;So How Is That Decision Made?&lt;/h3&gt;
+&lt;p&gt;This depends on the tile and potentially the specific ghost.  If the tile in question has only 1 valid exit, the ghost will choose it.  Ghosts cannot
+change direction on their own (e.g. reverse) and there are no dead-ends in the maze, so this should be the case anywhere on the maze.&lt;/p&gt;
+
+&lt;p&gt;Now if that cell has more than one option (not counting the direction it came) then we need to choose which to pick, and this is based on the ghost
+in question.  For Blinky, he alwyas takes the most direct route (shortest distance) to the player.&lt;/p&gt;
+
+&lt;h3 id=&quot;detailed-example&quot;&gt;Detailed example&lt;/h3&gt;
+&lt;p&gt;Here we have a ghost in a starting cell with a direction indicated by the arrow.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghost01.png&quot; alt=&quot;G1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And now the ghost has moved into a new cell; it’s at this point it looks ahead and makes a decision.  In this case it’s an intersection, so the choice would be deferred to the specific ghost type, but let us say LEFT is chosen (shown by the small green arrow).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghost02.png&quot; alt=&quot;G1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now the ghost really has no choice.  Remember it cannot reverse, and thus the only valid cell to exit from is straight ahead.  There is no reason at all to bother the specific ghost logic here.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghost03.png&quot; alt=&quot;G1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Moving ahead…here is a similar situation, except the only valid choice still requires a change in direction.  It’s important to make decisions based on the intended direction for that cell, rather than the ghosts current direction in these cases.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghost04.png&quot; alt=&quot;G1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And lastly we see that decision applied once the ghost reaches the center.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/Ghost05.png&quot; alt=&quot;G1&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;division-of-labor&quot;&gt;Division of Labor&lt;/h2&gt;
+&lt;p&gt;We can see that a non-insignificant amount of code is common to both ghosts and the player (they are both sprites after all) and that there exists quite a bit of common logic for ghosts, but they are distinguished by&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Intersection Decision logic&lt;/li&gt;
+  &lt;li&gt;Graphics&lt;/li&gt;
+  &lt;li&gt;Speed&lt;/li&gt;
+  &lt;li&gt;Penned or not at start?&lt;/li&gt;
+  &lt;li&gt;When it gets unpenned&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Or if we were to arrange this by class hierarchy, we might see something like this…&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/ClassHier.png&quot; alt=&quot;CH&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;branching-decisions-for-ai-specific-ghost-behavior&quot;&gt;Branching Decisions for AI (specific ghost behavior)&lt;/h2&gt;
+&lt;p&gt;Here is an abbreviated excerpt of the Ghost class&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;    &lt;span class=&quot;c1&quot;&gt;// Our Ghost class will encapsulate the basic behavior common to every ghost
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// (e.g. movement when not at an intersection) but will defer branching logic
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// (e.g. the case above - intersections) and texture specific loading and values
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// like base speed to a derived class.
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// I.e. this class does not exist by itself, somewhere there is a Blinky : Ghost,
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// Clyde : Ghost, etc
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Ghost&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Sprite&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Ghost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TextureWrapper&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pTextureWrapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+		&lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cxFrame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cyFrame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+		&lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cFramesTotal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cAnimationsTotal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        
+        &lt;span class=&quot;k&quot;&gt;virtual&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Ghost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;SafeDelete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Decision&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_pCurrentDecision&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;SafeDelete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Decision&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_pNextDecision&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// &quot;Interface&quot; for Ghosts to implement
+&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;virtual&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Initialize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;virtual&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Maze&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pMaze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;virtual&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Direction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MakeBranchDecision&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nRow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;					
+		&lt;span class=&quot;n&quot;&gt;Player&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pPlayer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Maze&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pMaze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// General movement that is common to all ghosts
+&lt;/span&gt;        &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Update&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Player&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pPlayer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Maze&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pMaze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The pure virtual methods are there to be implemented by the specific ghost type.  They handle the graphics and member setup, as well as that all important branching decision.  E.g.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;    &lt;span class=&quot;c1&quot;&gt;// &quot;Blinky&quot; type ghost.  This class is a thin wrapper in most places, 
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// just holding the specific tile initialization code for example
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// This class also defines the specific movement behavior
+&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// e.g. what are its target tiles at intersections
+&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Blinky&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Ghost&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Blinky&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TextureWrapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pTextureWrapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// &quot;Interface&quot; implemented here
+&lt;/span&gt;        &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Initialize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Reset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Maze&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pMaze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Direction&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MakeBranchDecision&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+		&lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nRow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Uint16&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+		&lt;span class=&quot;n&quot;&gt;Player&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pPlayer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Maze&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pMaze&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now &lt;a href=&quot;https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/blinky.cpp&quot;&gt;Blinky&lt;/a&gt; cares about the shortest route, so check the implementation to see how I did that.  Remember we’re attempting to code for clarity here.&lt;/p&gt;
+
+&lt;h2 id=&quot;ghost-warping-and-states-revisited&quot;&gt;Ghost Warping and States Revisited&lt;/h2&gt;
+&lt;p&gt;Last time, we introduced the concept of a GameState and rewrote our loop slightly to allow the state to dictate the code path.  Today, we’re going to extend that to the Sprite subclasses and fix the main loop to care only about updating the various objects in the frame.  In other words, we’re also moving the Player warping state to the Player code and out of the GameHarness.&lt;/p&gt;
+
+&lt;p&gt;This way each object can be in charge of managing its substate (e.g. warping, scattering, dying, etc).&lt;/p&gt;
+
+&lt;p&gt;The Ghosts and the Player will handle warping very similarly.  I encourage you to look at the code for each&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/player.cpp&quot;&gt;Player&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/ghost.cpp&quot;&gt;Ghost&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The gist of it is the same as last time, only applied to both classes.  The Ghosts get a penalty to speed in the warp, but otherwise behave the same.&lt;/p&gt;
+
+&lt;h2 id=&quot;ghost-pen&quot;&gt;Ghost Pen&lt;/h2&gt;
+&lt;p&gt;If you take a look at the collision map, you’ll see I hollowed out the little area in the center for the ghost pen.  If I place a ghost in there, it cannot get out on its own.  Pen problem solved.&lt;/p&gt;
+
+&lt;p&gt;Of course at some point you’ll want to let the ghost out, so we start a timer, and once it’s finished, we transition to a state much like warping, moving the ghost one cell out into the maze.  At this point, we turn it loose in normal chase mode.&lt;/p&gt;
+
+&lt;p&gt;In the original Pac-Man, Blinky would start outside of the pen and the others would be released later.  For this post’s version, Blinky will start inside the pen, so we can see that logic working.&lt;/p&gt;
+
+&lt;h2 id=&quot;output&quot;&gt;Output&lt;/h2&gt;
+&lt;hr /&gt;
+&lt;p&gt;win32 (linux looks the same, compile it and see! I checked)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/PMC05.gif&quot; alt=&quot;Running Win32 Application&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;coming-soon&quot;&gt;Coming soon&lt;/h3&gt;
+&lt;p&gt;The remaining ghosts, tweaking their AI, and Player lives.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 20 Sep 2016 10:47:00 -0700</pubDate>
+        <link>http://manixaist.github.io/coding/game/xplat/2016/09/20/xplat-pmc-05.html</link>
+        <guid isPermaLink="true">http://manixaist.github.io/coding/game/xplat/2016/09/20/xplat-pmc-05.html</guid>
+        
+        
+        <category>coding</category>
+        
+        <category>game</category>
+        
+        <category>xplat</category>
+        
+      </item>
     
       <item>
         <title>Cross Platform Game - 04</title>

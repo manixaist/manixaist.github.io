@@ -1,0 +1,173 @@
+---
+layout: post
+title:  "Cross Platform Game - 05"
+date:   2016-09-20 10:47:00 -0700
+categories: coding game xplat
+author: "manixaist"
+---
+
+
+# Enemy Ghosts and AI
+Today we add ghosts. Well 1 ghost, but we're adding the code to get 95% of the way there for the remaining ghosts in the future.
+Our ghost today is Blinky - and he chases Pac-Man (clone) most directly.
+
+![Blinky](/images/blinky.png)
+
+
+Behold our end goal for today!
+
+![Running Win32 Application](/images/PMC05.gif)
+
+___
+
+## Goals for Today
++ Describe ghost AI behavior
++ Division of labor by class
++ Branching decisions for AI (specific ghost behavior)
++ Ghost Warping/Pen and States Revisited
+
+### Assumptions
++ You went through the previous post(s)
+
+___
+
+#### [Github repo](https://github.com/manixaist/xplat-pmc-tutorial-05)
+
+## Ghost AI Behavior
+Once again [there are sources](http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html) for all this Pac-Man info..
+
+Summarized: when ghosts enter a new cell, they look ahead one tile from their current location and decide what to do once they eventually reach it.
+When they do (always once they get to the center) that previous decision is applied and a change in direction is applied if needed.  This means
+the ghosts are constantly swapping out these 2 "decisions" as they move through the maze.
+
+### So How Is That Decision Made?
+This depends on the tile and potentially the specific ghost.  If the tile in question has only 1 valid exit, the ghost will choose it.  Ghosts cannot
+change direction on their own (e.g. reverse) and there are no dead-ends in the maze, so this should be the case anywhere on the maze.
+
+Now if that cell has more than one option (not counting the direction it came) then we need to choose which to pick, and this is based on the ghost
+in question.  For Blinky, he alwyas takes the most direct route (shortest distance) to the player.
+
+### Detailed example
+Here we have a ghost in a starting cell with a direction indicated by the arrow.
+
+![G1](/images/Ghost01.png)
+
+And now the ghost has moved into a new cell; it's at this point it looks ahead and makes a decision.  In this case it's an intersection, so the choice would be deferred to the specific ghost type, but let us say LEFT is chosen (shown by the small green arrow).
+
+![G1](/images/Ghost02.png)
+
+Now the ghost really has no choice.  Remember it cannot reverse, and thus the only valid cell to exit from is straight ahead.  There is no reason at all to bother the specific ghost logic here.
+
+![G1](/images/Ghost03.png)
+
+Moving ahead...here is a similar situation, except the only valid choice still requires a change in direction.  It's important to make decisions based on the intended direction for that cell, rather than the ghosts current direction in these cases.
+
+![G1](/images/Ghost04.png)
+
+And lastly we see that decision applied once the ghost reaches the center.
+
+![G1](/images/Ghost05.png)
+
+## Division of Labor
+We can see that a non-insignificant amount of code is common to both ghosts and the player (they are both sprites after all) and that there exists quite a bit of common logic for ghosts, but they are distinguished by
+
++ Intersection Decision logic
++ Graphics
++ Speed
++ Penned or not at start?
++ When it gets unpenned
+
+Or if we were to arrange this by class hierarchy, we might see something like this...
+
+![CH](/images/ClassHier.png)
+
+## Branching Decisions for AI (specific ghost behavior)
+Here is an abbreviated excerpt of the Ghost class
+
+{% highlight cpp %}
+    // Our Ghost class will encapsulate the basic behavior common to every ghost
+    // (e.g. movement when not at an intersection) but will defer branching logic
+    // (e.g. the case above - intersections) and texture specific loading and values
+    // like base speed to a derived class.
+    // I.e. this class does not exist by itself, somewhere there is a Blinky : Ghost,
+    // Clyde : Ghost, etc
+    class Ghost : public Sprite
+    {
+    public:
+        Ghost(TextureWrapper *pTextureWrapper, 
+		Uint16 cxFrame, Uint16 cyFrame, 
+		Uint16 cFramesTotal, Uint16 cAnimationsTotal);
+        
+        virtual ~Ghost()
+        {
+            SafeDelete<Decision>(_pCurrentDecision);
+            SafeDelete<Decision>(_pNextDecision);
+        }
+
+        // "Interface" for Ghosts to implement
+        virtual bool Initialize() = 0;
+        virtual bool Reset(Maze *pMaze) = 0;
+        virtual Direction MakeBranchDecision(
+		Uint16 nRow, Uint16 nCol,					
+		Player* pPlayer, Maze *pMaze) = 0;
+
+        // General movement that is common to all ghosts
+        void Update(Player* pPlayer, Maze* pMaze);
+
+    protected:
+{% endhighlight %}
+
+The pure virtual methods are there to be implemented by the specific ghost type.  They handle the graphics and member setup, as well as that all important branching decision.  E.g.
+
+{% highlight cpp %}
+    // "Blinky" type ghost.  This class is a thin wrapper in most places, 
+    // just holding the specific tile initialization code for example
+    // This class also defines the specific movement behavior
+    // e.g. what are its target tiles at intersections
+    class Blinky : public Ghost
+    {
+    public:
+        Blinky(TextureWrapper* pTextureWrapper);
+
+        // "Interface" implemented here
+        bool Initialize();
+        bool Reset(Maze *pMaze);
+        Direction MakeBranchDecision(
+		Uint16 nRow, Uint16 nCol, 
+		Player* pPlayer, Maze *pMaze);
+    };
+{% endhighlight %}
+
+Now [Blinky](https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/blinky.cpp) cares about the shortest route, so check the implementation to see how I did that.  Remember we're attempting to code for clarity here.
+
+## Ghost Warping and States Revisited
+Last time, we introduced the concept of a GameState and rewrote our loop slightly to allow the state to dictate the code path.  Today, we're going to extend that to the Sprite subclasses and fix the main loop to care only about updating the various objects in the frame.  In other words, we're also moving the Player warping state to the Player code and out of the GameHarness.
+
+This way each object can be in charge of managing its substate (e.g. warping, scattering, dying, etc).
+
+The Ghosts and the Player will handle warping very similarly.  I encourage you to look at the code for each
+
+[Player](https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/player.cpp)
+
+[Ghost](https://github.com/manixaist/xplat-pmc-tutorial-05/blob/master/ghost.cpp)
+
+The gist of it is the same as last time, only applied to both classes.  The Ghosts get a penalty to speed in the warp, but otherwise behave the same.
+
+## Ghost Pen
+If you take a look at the collision map, you'll see I hollowed out the little area in the center for the ghost pen.  If I place a ghost in there, it cannot get out on its own.  Pen problem solved.
+
+Of course at some point you'll want to let the ghost out, so we start a timer, and once it's finished, we transition to a state much like warping, moving the ghost one cell out into the maze.  At this point, we turn it loose in normal chase mode.
+
+In the original Pac-Man, Blinky would start outside of the pen and the others would be released later.  For this post's version, Blinky will start inside the pen, so we can see that logic working.
+
+## Output
+___
+win32 (linux looks the same, compile it and see! I checked)
+
+![Running Win32 Application](/images/PMC05.gif)
+
+___
+ 
+### Coming soon
+The remaining ghosts, tweaking their AI, and Player lives.
+
