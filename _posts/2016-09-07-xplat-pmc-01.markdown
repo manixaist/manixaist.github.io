@@ -57,7 +57,7 @@ Make the name "windows" (this is the project name in the end) and the Location u
 + Check "empty project" 
 + Uncheck SDL checks (different SDL - Software development lifecycle) 
 
-One the new project loads...
+Once the new project loads...
 
 + Right-click on the project and select "add new item" 
 + Add main.cpp to the root of the repo (up one level from the project) 

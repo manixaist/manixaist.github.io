@@ -5,8 +5,8 @@
     <description>&lt;h1&gt;Developer Journal&lt;/h1&gt;&lt;h4&gt;Github pages for coding projects:&lt;/h4&gt;&lt;p/&gt;&lt;h4&gt;A collection of my hobbyist projects.&lt;/h4&gt;&lt;p/&gt;&lt;a href='http://xkcd.com/1724/'&gt;&lt;img src='http://imgs.xkcd.com/comics/proofs.png'/&gt;&lt;/a</description>
     <link>http://manixaist.github.io/</link>
     <atom:link href="http://manixaist.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 20 Sep 2016 16:05:31 -0700</pubDate>
-    <lastBuildDate>Tue, 20 Sep 2016 16:05:31 -0700</lastBuildDate>
+    <pubDate>Tue, 20 Sep 2016 17:05:05 -0700</pubDate>
+    <lastBuildDate>Tue, 20 Sep 2016 17:05:05 -0700</lastBuildDate>
     <generator>Jekyll v3.2.1</generator>
     
       <item>
@@ -1071,7 +1071,7 @@ sudo apt-get libsdl2-image-dev&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
   &lt;li&gt;Uncheck SDL checks (different SDL - Software development lifecycle)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;One the new project loads…&lt;/p&gt;
+&lt;p&gt;Once the new project loads…&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;Right-click on the project and select “add new item”&lt;/li&gt;
