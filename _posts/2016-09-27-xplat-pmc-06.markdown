@@ -1,0 +1,317 @@
+---
+layout: post
+title:  "Cross Platform Game - 06"
+date:   2016-09-27 10:47:00 -0700
+categories: coding game xplat
+author: "manixaist"
+---
+
+# Remaining Enemy Ghosts and AI
+I also included player lives last time, but we're skipping that for now as it makes the AI easier to see if the player is invincible.
+What we will do is add the remaining ghosts with their specific AI behaviors, including a reverse to the player eating a large pellet.
+I also added a simple title screen.
+
+Behold our end goal for today!
+
+![Running Win32 Application](/images/PMC06.gif)
+
+___
+
+## Goals for Today
++ Adding a title screen
++ Cleanup distance calculation
++ Add a new ghost and its assets
++ Scatter mode and scatter targets
++ AI visualization
++ Reversing Decisions
+
+### Assumptions
++ You went through the previous post(s)
+
+___
+
+#### [Github repo](https://github.com/manixaist/xplat-pmc-tutorial-06)
+
+## Adding a Title Screen
+This is really setup already, we've included a GameState for this that we currently skip over.  Instead of skipping over, now we're going to render a title screen image.  To proceed into the next state, we'll wait for some sort of directional input.
+
+{% highlight cpp %}
+	...
+        if (!fQuit)
+        {
+            switch (_state)
+            {
+            case GameState::Title:
+                Direction inputDirection;
+                if (ProcessInput(&inputDirection))
+                {
+                    _state = GameState::Exiting;
+                }
+                else if (inputDirection != Direction::None)
+                {
+                    _state = GameState::WaitingToStartLevel;
+                }
+                break;
+{% endhighlight %}
+
+Now inside the common Render() method, we differentiate based on state again
+
+{% highlight cpp %}
+void GameHarness::Render()
+{
+    SDL_RenderClear(_pSDLRenderer);
+
+    if (_state == GameState::Title)
+    {
+        if (_pTitleTexture != nullptr)
+        {
+            SDL_RenderCopy(
+                _pSDLRenderer,
+                _pTitleTexture->Ptr(),
+                nullptr,
+                nullptr);
+        }
+    }
+    else
+    {
+	...
+	...
+{% endhighlight %}
+
+## Cleanup Distance Calculation
+Last time I used pixels for distance.  This works ok for Blinky, and we could make it work for the remaining ghosts, but really we care about cell distance rather than pixel distance.
+The logic is fairly straightforward, and I liked a particular Stack Overflow answer, so I modified it below.  In short, it counts the diagonal steps taken until you reach either the row or col you're aiming for then add the number of straight steps needed to finish the walk.
+
+{% highlight cpp %}
+// Modified from StackOverflow answer
+double Distance(Uint16 row1, Uint16 col1, Uint16 row2, Uint16 col2)
+{
+    int dr = SDL_abs(row2 - row1);
+    int dc = SDL_abs(col2 - col1);
+
+    int min = SDL_min(dr, dc);
+    int max = SDL_max(dc, dr);
+
+    int diagonalSteps = min;
+    int straightSteps = max - min;
+
+    return SDL_sqrt(2.0) * diagonalSteps + straightSteps;
+}
+{% endhighlight %}
+
+## Add a New Ghost
+In the previous post we added everything we need for new ghosts minus the differentiators. These are
+
++ New frames
++ [Different behavior at intersections](http://hackipedia.org/Games/Arcade/Pac-man/pacman,%20dossier.html)
++ Different scatter targets (next section)
+
+Frames are handled during init, so this is just pointing to either a new texture, or a new position on the existing texture.  We will do the latter and keep the sprites on one texture.
+Behavior specialization is achieved by implementing the pure virtual MakeBranchDecision() method.
+Scatter targets are just another member field we will add and init per ghost.
+
+## Scatter Mode
+When a ghost is not chasing or warping, he's likely scattering.  In this mode the ghosts move toward their individual scatter targets which are off the maze in the corners (meaning they can never be reached).  Note: We've not adding dying for the ghost yet, and the pen state is handled.
+
+## AI Visualization
+In order to see the AI in action I'm adding 2 things.  First, the ability to turn the ghosts on and off.  This way we can see them one at at time and tweak any incorrect behavior.  The only exception to this is Inky, who reguires Blinky in order to make a decision.  He must also be enabled.
+
+{% highlight cpp %}
+// TEMP compile time flags for ghost enabling
+#define GHOST_BLINKY
+#define GHOST_PINKY
+#define GHOST_INKY
+#define GHOST_CLYDE
+
+// requires Blinky so make sure we enabled it
+// will crash otherwise
+#ifdef GHOST_INKY
+#ifndef GHOST_BLINKY
+#define GHOST_BLINKY
+#endif
+#endif
+
+void GameHarness::InitializeSprites()
+{
+    // In all cases we create a player
+    SDL_assert(_fInitialized);
+    InitGameSprite(&_pPlayer, _pSpriteTexture, _pMaze);
+
+    // The ghosts are controlled by these flags
+#ifdef GHOST_BLINKY
+    InitGameSprite(&_pBlinky, _pSpriteTexture, _pMaze);
+    _pGhosts[0] = _pBlinky;
+#endif
+
+#ifdef GHOST_PINKY
+    InitGameSprite(&_pPinky, _pSpriteTexture, _pMaze);
+    _pGhosts[1] = _pPinky;
+#endif
+
+    // Will also enable blinky as he is needed for Inky's
+    // targeting scheme
+#ifdef GHOST_INKY
+    InitGameSprite(&_pInky, _pSpriteTexture, _pMaze);
+    _pInky->SetBlinkyReference(_pBlinky);
+    _pGhosts[2] = _pInky;
+#endif
+
+#ifdef GHOST_CLYDE
+    InitGameSprite(&_pClyde, _pSpriteTexture, _pMaze);
+    _pGhosts[3] = _pClyde;
+#endif
+}
+{% endhighlight %}
+
+You'll notice above that I've stuck all the ghosts into an array.  Remember that they are all ghosts (as well as sprites) so all common behavior can be invoked through that class interface.
+
+### Blinky
+We did this one last time.  The target is still the player, though now we add the scatter target
+
+![Blinky](/images/blinky_ai.gif)
+
+### Pinky
+Pinky's target is always 4 spaces ahead of the player.  The exception is when the player is facing up, and that already mentioned famous overflow bug comes into play.  I've gone ahead and left that behavior, so the target will be offset up and left in the cases where the player is moving up.
+
+![Pinky](/images/pinky_ai.gif)
+
+### Inky
+Inky requires Blinky as mentioned and the reason is, we take a line from 2 spaces ahead of the player and Blinky's current cell and extend it to twice its length.  The end of that line becomes Inky's target
+
+![Inky](/images/inky_ai.gif)
+
+### Clyde
+Clyde's target is the player, but only if 8 tiles or more away, then it becomes its scatter target in the lower left corner.  This means by himself he won't hit the player unless you let him or get in his way intentionally.
+
+A short aside - SDL does not provide a circle drawing method.  Largely because games just don't use them, but here visualizing that circle is helpful.
+
+If you remember your unit circle, we can break the X and Y components up into cos(theta) sin(theta) where theta is the angle.
+
+![UC](/images/unitcircle.png)
+
+We don't want to do those calculations each frame (though likely we could get away with it here), so what we can do is run through the angles we care about from 0 to 360 (or 0 to 2pi) and store the results in arrays.  Then we can loop through the arrays multiplying each value by a scalar (radius) and drawing a dot at each location.
+
+The actual code (look in OnLoading()) iterates over 1440 points on the circle (or 360 * 4, or every .25 degrees).  You can play with the total number if you wish.
+
+{% highlight cpp %}
+else if (ghostIndex == 3) // Clyde
+    {
+        SDL_Point clydePoint = { _pGhosts[ghostIndex]->X(), _pGhosts[ghostIndex]->Y() };
+        SDL_Point clydeCircle[SDL_arraysize(CosineTable)] = { 0,0 };
+        // Draw 'circle' using pre-calculated cos/sin table
+        for (size_t j = 0; j < SDL_arraysize(CosineTable); j++)
+        {
+            clydeCircle[j] = { 
+                clydePoint.x + (CosineTable[j] * 8 * TileWidth),
+                clydePoint.y + (SineTable[j] * 8 * TileHeight) 
+            };
+        }
+        SDL_RenderDrawPoints(_pSDLRenderer, clydeCircle, SDL_arraysize(clydeCircle));
+    }
+{% endhighlight %}
+
+![Clyde](/images/clyde_ai.gif)
+
+
+## Reversing Decisions
+When the player eats a large pellet, the ghosts need to update their targets, reverse course and start scattering.  The GameHarness tracks collsions with pellets, so it will have to be responsible for notfiying the ghosts as well.  Because we have them in an array, this iteration is also easy.
+
++ Detect the collision
++ Notify all ghosts
++ Each ghost reverses and updates its targets
+
+This is even easier if we start tracking our previous decision rather than throwing it away (deleting it).
+
+{% highlight cpp %}
+// Detect if the player has entered a pellet tile and remove it, incrementing our counter
+// If the pellet is BIG, then trigger the ghost behavior
+Uint16 GameHarness::HandlePelletCollision()
+{
+    Uint16 ret = 0;
+    SDL_Point playerPoint = { static_cast<int>(_pPlayer->X()), static_cast<int>(_pPlayer->Y()) };
+    Uint16 row = 0;
+    Uint16 col = 0;
+    _pMaze->GetTileRowCol(playerPoint, row, col);
+
+    if (_pMaze->IsTilePellet(row, col))
+    {
+        _pMaze->EatPellet(row, col);
+        ret++;
+    }
+    else if (_pMaze->IsTilePowerPellet(row, col))
+    {
+        _pMaze->EatPellet(row, col);
+        ret++;
+
+        for (size_t i = 0; i < SDL_arraysize(_pGhosts); i++)
+        {
+            if (_pGhosts[i] != nullptr)
+            {
+                _pGhosts[i]->OnPowerPelletEaten(_pMaze);
+            }
+        }
+    }
+    return ret;
+}
+
+void Ghost::OnPowerPelletEaten(Maze* pMaze)
+{
+    // Called by the GameHarness when the player eats a pellet
+    _fScatter = true;
+    
+    if (!_scatterTimer.IsStarted())
+    {
+        _scatterTimer.Start(10000);
+    }
+    else
+    {
+        _scatterTimer.Reset();
+        _scatterTimer.Start(10000);
+    }
+    if (_mode == Mode::Chase)
+    {
+        // Don't do this for other cases like warping
+        // Let the velocity stay managed by those handlers
+        ReverseDirection();
+    }
+    UpdateAnimation(CurrentDirection());
+}
+
+void Ghost::ReverseDirection()
+{
+    // this should be safe in all cases
+    SetVelocity(DX() * -1, DY() * -1);
+    SafeDelete<Decision>(_pNextDecision);
+ 
+    Decision *tmp = _pCurrentDecision;
+    Direction dir = Opposite(_pPrevDecision->GetDirection());
+    _pCurrentDecision = new Decision(_currentRow, _currentCol, dir);
+
+    SafeDelete<Decision>(_pPrevDecision);
+    SafeDelete<Decision>(tmp);
+
+}
+{% endhighlight %}
+
+
+The graphic below outlines the reverse logic for the most complex case we have. Proving this works for the simpler linear case is trivial if you understand this one.
+
+![Reverse](/images/ghostreverse.png)
+
+Here it is in motion...
+
+
+![Reverse](/images/GhostReverse.gif)
+
+
+## Output
+___
+win32 (linux looks the same, compile it and see! I checked)
+
+![Running Win32 Application](/images/PMC06.gif)
+
+___
+ 
+### Coming soon
+Player lives and ghost collisions
+
