@@ -1,6 +1,6 @@
 ---
-layout: post
-title:  "Cross Platform Game - 02"
+layout: default
+title:  "Pac-Man 02: 2D Tiled Map"
 date:   2016-09-09 01:00:56 -0700
 categories: coding game xplat
 author: "manixaist"

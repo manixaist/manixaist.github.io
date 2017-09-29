@@ -1,7 +1,7 @@
 ---
-layout: post
-title:  "Cross Platform Game - 01"
-date:   2016-09-07 22:01:43 +0530
+layout: default
+title: "Pac-Man 01: Cross Platform Pac-Man Clone Tutorial"
+date: 2016-09-07 22:01:43 +0530
 categories: coding game xplat
 author: "manixaist"
 ---

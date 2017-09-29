@@ -1,6 +1,6 @@
 ---
-layout: post
-title:  "Cross Platform Game - 04"
+layout: default
+title:  "Pac-Man 04: Eating the pellets, level completion and warping!"
 date:   2016-09-16 15:05:00 -0700
 categories: coding game xplat
 author: "manixaist"
