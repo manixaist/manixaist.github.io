@@ -1,0 +1,158 @@
+---
+layout: default
+title: "[APMD 03]: UCI Chess Engine Wrapper"
+date:   2017-09-29 23:24:00 -0700
+categories: coding csharp game chess uci
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+
+# UCI ChessEngine Wrapper
+Let's zoom in one more time on the box from last post for the ChessEngine; if you've been waiting for something that looks like code, then we're almost there.  First, remember some basic requirements from last time.
+
+* Sending commands to the engine process cannot block the calling thread, e.g. it must be asynchronous
+* The second half of the async work is providing a method to tell the engine how to notity the caller when the command is finsished
+* The commands need to be fully processed in the order in which they are sent
+
+## Pseudocode
+So what might this look like in code eventually?  How would a person (myself in this case) use this class.  It's important to think of this before you start hammering out code, then realize you have no way to get the result back to the caller for example.  
+
+This supposes some basic C# knowledge, but nothing overly complicated.
+
+```cs
+private ChessEngine engine;
+
+// Ficticious method to start a new game
+public void ChessGame::StartNewGame(string pathToExe)
+{
+    // Create an engine object
+    engine = new ChessEngine(pathToExe);
+    // Subscribe to response event with this class's helper
+    engine.OnResponse += this.OnChessEngineResponse;
+
+    // Initialize the protocol and new game
+    engine.SendCommandAsync("uci");
+    engine.SendCommandAsync("ucinewame");
+    // Send an opening pawn move for white
+    engine.SendCommandAsync("position startpos moves e2e4");
+    // Ask for black's best move
+    engine.SendCommandAsync("go movetime 5000");
+}
+
+// An EventHandler (delegate - or callback) invoked by the
+// ChessEngine class when a command is processed.
+public void OnChessEngineResponse(SomeKindOfEventArg e)
+{
+    // This will get called when the commands are processed
+    // handle them here
+    if (e.Response == BestMove)
+    {
+        // Update our data with the new move
+        this.chessBoard.ApplyMove(e.Move);        
+        // Return control for the user for the next move
+        ...
+    }
+}
+```
+
+## IChessEngine - The Contract With ChessGame
+Now that we've seen the pseudocode, I'll show the complete [interface](https://github.com/manixaist/AllPawnsMustDie/blob/master/AllPawnsMustDie/core/IChessEngine.cs).
+
+```cs
+/// <summary>
+/// Generic interface for the chess engine (external process).  At a bare
+/// minumum, we need to be able to send a command and wait for a response
+/// </summary>
+interface IChessEngine
+{
+    /// <summary>
+    /// Event fired when the engine has finished with a given command
+    /// </summary>
+    event EventHandler<ChessEngineResponseReceivedEventArgs> 
+            OnChessEngineResponseReceived;
+
+    /// <summary>
+    /// Event fired when the engine has receieved any output
+    /// </summary>
+    event EventHandler<ChessEngineResponseReceivedEventArgs> 
+            OnChessEngineVerboseOutputReceived;
+
+    /// <summary>
+    /// Loads the chess engine process
+    /// </summary>
+    /// <param name="fullPathToExe">full path to chess engine</param>
+    void LoadEngine(string fullPathToExe);
+
+    /// <summary>
+    /// Resets the engine, only valid after a succesful load
+    /// </summary>
+    void Reset();
+
+    /// <summary>
+    /// Send a command to the chess engine, does not block, fires events above
+    /// </summary>
+    /// <param name="commandString">command to send</param>
+    /// <param name="expectedResponse">response we expect to get.  If this is
+    /// and empty string, then sync up after the command with the engine</param>
+    void SendCommandAsync(string commandString, string expectedResponse);
+
+    /// <summary>
+    /// Quit the engine
+    /// </summary>
+    void Quit();
+}
+```
+
+Note I actually provide two separate events.  One for the commands, and another for all of that extra output you might rememeber in [post 01](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html) like ```info```.  The rest should be apparent if you've been following along.
+
+## Threads, Queues, and Events
+Now the other end needs attention.  How to interact with the external chess engine process in a way that can fullfill the contract I just established?  There are two major problems to address.
+
+### Processing Commands In Order
+This is really not difficult on its face.  A Queue works great for this and C# provides a Queue class that can hold generic objects.  The details are what to store in the queue and how to process it.  This is complicated by UCI not always giving a response and having to inject my own ```isready/readyok``` cycle to sync up.  Basically, I need to store a command and an expected response (if we expect one from UCI).
+
+### Commands Must Be Asynchronous
+Here is where it starts getting more interesting.  The ```IChessEngine.SendCommandAync()``` method cannot block the caller.  It must return, more or less, immediately.  This is because it will be called on the UI thread, and if the command takes 10 seconds (or even just 1/4 of that), then the UI will not update for that time as the message loop will be blocked.  If you have logic waiting on the callback, the app may deadlock entirely.
+
+To implement this correctly, the ```ChessEngine``` class will need to spin up a worker thread to process commands.  There are many options for threads in C#, but I'm going with simple once again and launching a dedicated thread.  It will initialize the process, and then sleep (```Wait```) unless there is work to do.  
+
+When items are added to the Queue, the thread will examine them, and deal with them accordingly (e.g. if no command is expected, send ```isready``` and wait for ```readyok```.)  When a command has been processed, any subscribing listeners will get the interface Events as appropriate.
+
+Here is another crude developer diagram showing the cycle of a ```SendCommandAync()``` for ```uci/uciok```.  
+```
+                                      +-------------+   +-------+
+IChessEngine.SendCommandAync("uci")-->| ChessEngine |-->| Queue |
+                    ^                 +-------------+   +-------+
++----------------+  |                                     |
+| ChessGame      |  |                                     |
+|----------------|--+                                     v
+| Holds that     |         +----------+       +------------+
+| pseudocode     |         |  CHESS   | STDIN | Command    |
+| loop above     |         |  ENGINE  |<------| Processing |
++----------------+         |  EXE     |       | ThreadProc |
+      ^                    +----------+       +------------+
+      |                        |  STDOUT         +-----------+
+      | "uciok"                +---------------->| OnData    |
+      |                                          | Callback  |
+      +--(OnChessEngineResponseReceived)<--------+-----------+
+```
+
+
+Note that first call returns right away.  After that the command is added to a queue, and the processing thread is signalled that work is waiting for it.  That thread then picks up the work in the queue and manages talking to the external exe via its ```stdin``` stream.   The ChessEngine will need to subscribe to the process's ```OnDataReveived``` event to get responses via its ```stdout``` stream.  
+
+Once the response we're waiting for comes back (or the ```readyok``` we're waiting for after injecting ```isready```) we fire the ```IChessEngine.OnChessEngineResponseReceived``` event.  Not pictured, but works almost exactly the same way, is the firing of verbose events.  In this case that would be the ```id``` and ```option``` lines.
+
+## Implementation
+Here is the [interface](https://github.com/manixaist/AllPawnsMustDie/blob/master/AllPawnsMustDie/core/IChessEngine.cs) again for reference as well as the [code](https://github.com/manixaist/AllPawnsMustDie/blob/master/AllPawnsMustDie/core/UCIChessEngine.cs) that implements the UCI engine wrapper described above.  Everything minus the calls into the class are there.
+
+### Summary
+With this code in place, there is enough to automate commands with the chess engine.  Self play is almost done at this point (minus the fact we have no UI yet) the engine could still play itself with the output in debug.  Now I can move on to organizing the object around the game session, and the view on the data.
+
+### Next Up: The Data
+That ChessGame block is up next.  I'll talk about how it manages command/responses with the UCIEngine wrapper class and what else it has it's tendrils in (the Form, the view, etc). It's the hub of most objects in the application.
