@@ -1,0 +1,100 @@
+---
+layout: default
+title: "[APMD 02]: Componentization"
+categories: coding csharp game chess uci
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+
+# Componentization
+In the last post, I broke down the pieces needed to build the GUI.  In this post, I'm going to talk about organizing the application so I can properly componentize it.  This way, if in the future, say I wanted to switch to a fancier Direct3D rendering, I can simply replace the 'rendering' component and it should work with ideally no outside code changes.  It depends on how hard you draw your lines.
+
+## 10,000' View
+Ok, so high level, how to break apart this application?  I know I need a Form to ultimately hold the Windows code (menus, windows, mouseclicks, etc), I know I need a way to draw my collection of classes that will represent my chess board, pieces, move history, etc, and lastly I know I need a way to talk to this external chess engine executable.
+
+Here is a quick outline of that arrangement in crude developer art.
+```
+(AllPawnsMustDie.exe)                                     |
++--------------+     +--------+                           |
+|              |---->| view   |                           |
+| Application  |     +--------+                           |
+| Windows Form |                                          |
+|              |                                          | 
+|              |---->+--------+    +----------------+     |
++--------------+     | data   |--->| UCI chess      |     |
+                     +--------+    | engine wrapper |--+  |
+                                   +----------------+  |  |
+                                                       V  |             
+==========================================================|
+ (PROCESS BOUNDARY)                                    ^
+                                                       |
+ +------------+                         +------------------+
+ |            |                         |                  |
+ | UnitTests  |                         |  CHESS ENGINE    |
+ |            |                         |e.g. Stockfish.exe|
+ +------------+                         +------------------+
+
+``` 
+
+### Windows Form
+Holds the application entry point and the "Win32" code.  It handles menus,  mouse input, dialogs, etc.  Quite a lot of this is generated for you in the IDE if you're using Visual Studio (2017 Community is free).
+
+### Data
+This box represents the sum total of the data representation of the game.  This could be further divided into classes that implement things like; game session, chess board, chess piece, move history, etc.
+
+### View
+This box represents the visual representation of the data.  The idea here is to completely decouple the view from the data.  This way you can replace either independently, as long as you agree how they talk.  This is done via an interface in code.  
+
+You could even imagine a scenario where there are multiple views available (direct3d, opengl, gdi, ascii, etc) and the user could switch them at run time.  That's the level of decoupling we're ideally shooting for.
+
+### UCI Chess Engine Wrapper
+This box is the code that manages the external chess engine exe.  It is responsible for launching, closing, writing and reading from the chess engine and exposing a simpler interface for making calls to the engine (by the data most likely).
+
+### UnitTests
+Ok so not a direct component to the application, but a vital part of the project.  You don't want to write a whole bunch code, move on, then change something and have to worry about breaking code you wrote (or finding out about it much later).  This is super easy to do as well in Visual Studio and C#, so take advantage.
+
+## 10' View
+Now let's zoom in just a bit and look at each box again, and what it might be composed of.
+
+### Windows Forms
+I know I need at least 1 ```Form```, the main one I will use to draw the board, host the menu, etc.  It's what you first see when the application is launched.  Beyond that, I want it simple, so I will add ```Dialogs``` (a type of ```Form```) to handle other UI input.  So what will I need ```Dialogs``` for?
+
+* Loading the chess engine - have to prompt for the exe at a bare minimum
+* Starting a 'New Game' (or position) - select your color and the CPU think time, etc
+* Piece Promotion - Because it's only Queen 99.999999% of the time.
+* About Dialog - point to the repo, build number, etc
+* Display FEN - copyable control so we can grab the current FEN.
+
+Don't worry, most of these ```Dialogs``` will be trivial to implement given the designer in Visual Studio.  New Game, New Position, and Self Play can all share one ```Dialog``` with slightly tweaked controls, About and FEN will just have static controls, and Loading should be able to reuse the system FileLoad ```Dialog```.  Promotion can be as complicated as I choose to make it, so I'll make it very simple with a set of radio buttons.
+
+It's mostly uninteresting code, but it must be accounted for.
+
+### Data
+The heart of the GUI; what really drives what the user is going to see.  This in turn will be driven by the chess engine, but it could also stand alone, or even be used in human vs. human.  What makes up the data?  Here are some pseudo-classes.
+
+* ChessGame - Holds the ChessBoard, along with the ChessView, and the ChessEngine classes.  This is what the main ```Form``` will interact directly with.  Really doesn't fit cleanly in any 10,000' box, but I'll put it here.
+* ChessPiece - Pawn, Knight, Rook, etc... this is a standard chess piece.
+* ChessBoard - Holds the active ChessPieces, as well as information about the board state
+* FenParser - Remember FEN and how vital it is?  Yeah I will need a class to deal with FEN.
+
+### View
+The view is simple by design, so I just need one class we'll call ```ChessView```.  The view will need some way to access the ```Data``` which in this case will likely be the ```ChessBoard``` object.  The view will use information in the data (e.g. the current chess position) to render the board to the main ```Form```.
+
+### UCI Chess Engine Wrapper
+Refer back to the [first post](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html) in the series on how to interact with a chess engine over UCI.  This is the class that will do that work.  I want to point out just a few things.  
+
+First, this will need to have at least 1 worker thread.  You simply cannot talk back and forth to the process on the UI thread, which is where the ```Form``` lives and will ultimately first invoke the engine.  Second, I will need a way to synchronize the commands to the engine, so they arrive and are processed in the correct order and so the GUI can stay in sync with the engine state.   Lastly, the caller needs a way to not care about that and just fire off a command asynchronously, so it can get back to the UI message loop, but it also needs to know when that command has finished.
+
+### Summary
+Those are the major pieces I'm going to need at a software level.  The main points to take away are...
+
+1. Componentize as much as possible
+2. Separate the view from the data
+3. Don't block the UI thread with "work"
+
+In the next post, I will drill down into the ChessEngine and talk about how it will interact with its consumer (the data) and how it will interact with what it consumes (the chess engine) and how we can normalize that across all engines that support UCI.
