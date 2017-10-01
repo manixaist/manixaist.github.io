@@ -1,0 +1,147 @@
+---
+layout: default
+title: "[APMD 06]: FEN & The FenParser"
+date: 2017-10-01 16:13:00 -0700
+categories: coding csharp game chess uci
+excerpt: "The FenParser is the core of the updating state logic for the engine and board."
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+* [03: UCI Chess Engine Wrapper](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-03.html)
+* [04: ChessGame, The Data...Sorta](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-04.html)
+* [05: ChessBoard & ChessPiece](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-05.html)
+
+## FenParser
+The ```FenParser``` is the core of the updating state logic for the engine and board.  I've already stated back in post 01 that the FEN is vitally important; it represents the complete state of the current game.  So, I need a way to work with them.  
+
+I'll go over the format in the next section, but parsing it out is trivial.  What I really want, and will be helpful, is a way to produce a new FEN given a starting FEN and a move.
+
+This magical method might look like this
+```cs
+public string CalculateNewFEN(string startingFen, string move);
+```
+
+You can always start with the default FEN for normal games, or from a valid starting FEN by supplying it.  So you always have a valid starting FEN.
+
+Now, every time you have a new move, you could then just pass it the old FEN and the move, and store the new FEN.  The FEN is now a watermark of sorts with state attached.
+
+In theory, you could even just create a new board each turn and destroy the old board, using the FEN to create a new one.  It's that stateful (but it's easier just to move the affected pieces rather than create and destroy all those objects).
+
+### FEN, The Dirty Internals
+[FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) is actually really simple by design as it was originally used in print newspapers.  So humans have to reasonably be able to parse it, making it trivial for code to do so since it is also well defined in terms of format.
+
+There are 6 parts to the FEN string, separated by a space.  From left to right they are...
+
+#### 1) The Board & Pieces
+The first substring is a decription of the board and the pieces on it.  It lists each square in order, left to right, back rank to front rank (from white's perspective).  A piece is denoted with a standard char for the type in SAN (e.g. 'n' for knight, 'p' for pawn, etc) with white in uppercase and black in lowercase.  The end of a rank is marked with a '/' and empty squares are encoded in a running manner, e.g. the count of empty squares in a row.
+
+Example: Here is the string for the standard starting position
+
+```
+rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+```
+
+It starts at the back rank (rank 8), and lays out in left to right order, rook, knight, bishop, queen, king, bishop, knight, rook - a standard starting back rank.
+
+Then we get an EOL marker.  Note this is just for people, a machine would never have needed this since the running count is always 8 per rank.....
+
+Then it's 8 pawns, followed by 4 empty ranks, then white's pieces.
+
+Here's a slightly more complicated one, but it works the same way.
+```
+6k1/1b3ppp/4pn2/4N3/1pB5/1Pr1P3/5PPP/R5K1
+```
+
+#### 2) The Active Player
+This is either a 'w' for white, or a 'b' for black.  Easy!
+
+#### 3) Castling Rights
+Probably the most complex piece, but it's not hard.  Castling rights are labeled with a 'k' for kingside and a 'q' for queenside, meaning that is still a legal option for the player to castle (as long as other normal move conditions are met...).
+
+Like everything else, white is uppercase and black is lower.  If a player has no rights, then there are 2 options.  
+* If the other player still has rights, show those
+* Otherwise, no one has any rights and show a '-'
+
+Examples:
+```
+KQkq : Everyone has all rights (starting state)
+Qkq : White can only castle queenside, but black is fine either way
+- : No one is allowed to legally castle
+```
+
+#### 4) En-Passant Target Square
+This is a square in SAN, e.g. ```e4```.  It's only set in valid en-passant possible states.  The square listed here is the square behind the enemy pawn, where the player pawn will end up if capturing by en-passant, but the pawn removed will be one further 'forward'.  If there is no target (common) it's just a '-'.
+
+#### 5) Halfmove Count
+This is a number that represents the moves taken since a pawn was moved, or any piece was captured.  It's used as part of the 50 move draw rule.   I use it to abort self play cycles that get stuck moving back and forth.  
+
+The theory is if you haven't advanced a pawn or captured a piece in 50 moves, no one is winning and we're drawn and stubborn.  This is incremented for each player side (or reset to 0 on captures and pawn moves), unlike the next one...
+
+#### 6) Fullmove Count
+This is also a number and is just the raw total number of moves, where each side has had a turn.  It starts at one.  For example, you might see chess games listed like...
+
+```
+1 e2e4 e7e5 2. d2d3 ... 
+```
+
+In this case we're on the 2nd full move, but black needs to move before we get to move 3.
+
+## Magic FEN Updater
+Unfortunately, there is no magic, I have to write it.  However, here is that main method I mentioned above.  These are all inside the [FenParser](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/FenParser.cs) class.
+```cs
+public static string ApplyMoveToFEN(String fen, string sanMove)
+```
+This does quite a lot of work.  It does assume the move is legal, (again the ```ChessGame``` verifies this above us in the stack) but it still must account for special rules, like castling, promotion, captures, and en-passant captures.
+
+It's pretty long, and I'm tempted to refactor this yet again at some point, but if you read through the comments, it should be clear what is going on.  There are just quite a few things to account for.
+
+The other methods are helpers that support that function, or just extracting state.  I'll list some of the more important public ones below.
+
+Example: Here are the 'extraction' methods and given the FEN explanation above, what each does should be obvious (minus the class details).
+```cs
+public static List<ChessPiece> ExtractPieces(string fen)
+public static PieceColor ExtractActivePlayer(string fen)
+public static bool ExtractEnPassantTarget(string fen, out ChessBoard.BoardSquare enPassantSquare)
+public static void ExtractCastlingRights(string fen, ref BoardSide whiteCastlingRights, ref BoardSide blackCastlingRights)
+public static void ExtractMoveCounts(string fen, ref int halfMoves, ref int fullMoves)
+```
+
+Example: These support the main update method.  These might be less obvious.
+```cs
+public static string ExpandRank(String fen, int rank)
+public static string CollapseRank(String fen, int rank)
+public static string InsertPiece(String fen, char fenChar, int file, int rank)
+public static string RemovePiece(String fen, int file, int rank, out char fenChar)
+```
+
+Since the board position is run length encoded for empty spaces, there is no way of knowing how many characters a rank will be composed of.   You can only know the minumum (1) and the maximum (8).  
+
+What I did was write methods that would take a rank and expand out those empty squares (if any).  Then moving or inserting a piece in the proper place is trivial  I could have written code that accounts for this without expansion
+
+Example:  If you wanted to expand rank 4 for this FEN
+```
+rnbqkb1r/pp3ppp/2p1pn2/6B1/2pP4/2N1PN2/PP3PPP/R2QKB1R b KQkq - 0 6
+expands to...
+rnbqkb1r/pp3ppp/2p1pn2/6B1/11pP1111/2N1PN2/PP3PPP/R2QKB1R b KQkq - 0 6
+```
+
+```CollapseRank``` does the exact opposite.  So now I can expand the ranks involved, in say a move, then finding the piece is a simple index [0-7] on that portion of the string.  This makes ```InsertPiece``` and ```RemovePiece``` much easier to implement and for others to understand and read.
+
+## Unit Tests FFS!
+I mentioned unit tests back in post 01, and this is a great place to show an example.  Have a look [here](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDieUnitTests/FenParserUnitTests.cs) at the tests for the ```FenParser``` class.  I love these data driven style tests.  Looking at ```ApplyMoveToFENTests``` specifically, you can see what I meant by replaying an entire game with just FEN.
+
+It's also easy to force moves an opponent wouldn't normally let you make, or do odd promotions, etc.  Then when you need to touch that code to fix some other bug, you hit one button and rerun all of the tests to make sure it's still working.  It will save you at some point.
+
+## Summary
+* FEN is a string that describes the board state
+* It has 6 parts
+* FenParser lets me manipulate it
+
+### Next Up: The View
+Rendering all the work to represent a chess game...this was the whole point of a GUI after all.
