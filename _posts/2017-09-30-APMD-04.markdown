@@ -1,0 +1,231 @@
+---
+layout: default
+title: "[APMD 04]: ChessGame, The Data...Sorta"
+date:   2017-09-30 17:19:00 -0700
+categories: coding csharp game chess uci
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+* [03: UCI Chess Engine Wrapper](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-03.html)
+
+## The Data...Eh Maybe The Controller
+Last time I mentioned the data portion was up next, as was the ChessGame block.  This isn't 100% accurate, but I'm treating the ChessGame as part of the data for discussions here.  In a more formal MVC pattern it would be closer to the controller.  I'm still going to cover [ChessGame](https://github.com/manixaist/AllPawnsMustDie/blob/master/AllPawnsMustDie/core/ChessGame.cs) in this post though.
+
+## ChessGame, What Is It Then?
+From the view of the Forms layer, the ```ChessGame``` object is what you interact with.  You will never create a ```ChessPiece``` or ```ChessBoard``` yourself.  You create a ```ChessGame``` object and tell it what to do.
+
+From the view of the ```ChessGame``` object, you own the various portions of the game
+* ```ChessBoard``` (the view data)
+* ```ChessView```  (the rendering code, driven by ```ChessBoard```)
+* ```UCIChessEngine``` (Covered this last post!)
+* Subscribing to chess engine events
+* Own Events that fire on GameOver
+* Translate input to actions (clicks on squares for example)
+* Validate legality of moves
+* Update the engine and the player
+* Cleanup owned objects
+
+## Go With The Flow
+Here is what the basic flow of the game looks like at this layer.  This obviously ignores some important details for now and assumes the position set starts with White.
+
+Once the active player is set, a move is determined (somehow) and then that move is applied with the data (the board) and the engine (via UCI).  Then the active player is swapped, and we do the same thing again, until ```gameover``` is detected and then the ```Event``` is fired for it.
+
+```
+Active Player: a {w, b}
+     +--------------+
+     | NewGame /    |      +------------+
+     | NewPosition  |      | OnGameOver |
+     +--------------+      +------------+
+         |                     ^
+         V                     | (gameover
+     +-------+                 |   == true)
+  +->| a = w |         +---------------+                                     
+  |  +-------+ (move)  | Apply Move to |
+  |      |------------>| Board and     |
+  |  +-------+         | Engine        |
+  |  | a = b |<--------+---------------+
+  |  +-------+  (a:w?)         | (a:b?)
+  |                            |
+  +----------------------------+
+```
+
+Note this works exactly the same way in both normal (human vs engine) and self (engine vs engine) play.  The only difference is who is supplying the move information and how.  In the case of the player, it will be via mouseclicks.  For the engine, we ask the engine over UCI for the move and apply it.
+
+### Hooking Up With ChessEngine
+Last time I showed some pseudocode for initializing an engine wrapper.  So now I want to show the V1 code and compare it.
+
+Full code
+[ChessGame.cs (V1)](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/ChessGame.cs#L258)
+
+Truncated for clarity, here to the core portions (ignores localization and some other setup)
+```cs
+IChessEngine engine;
+public ChessGame(Form clientForm, string fullPathToEngine)
+{
+    // Save the form
+    form = clientForm;
+
+    // Create the board, the view, and the engine
+    // Create new UCI engine object
+    UCIChessEngine uciEngine = new UCIChessEngine();
+    engine = (IChessEngine)uciEngine;
+
+    // Subscribe to events from the engine (commands and verbose)
+    engine.OnChessEngineResponseReceived += ChessEngineResponseReceivedEventHandler;
+    engine.OnChessEngineVerboseOutputReceived += ChessEngineVerboseOutputReceivedEventHandler;
+
+    // This will launch the process
+    engine.LoadEngine(fullPathToEngine);
+    engine.SendCommandAsync(UCIChessEngine.Uci, UCIChessEngine.UciOk);
+}
+```
+It's more or less as previously described, however note the ```SendCommandAsync``` takes both the command and the expected.
+
+Before I go into more depth, I need to take a brief aside about the other contents of ChessGame.cs
+
+## Miscellany Enums & Structs
+If you've peeked into the cs file already, you may have seen several enums and a few structs defined in this same file besides the ```ChessGame``` class.  These are generally game wide enums and objects, and most are pretty obvious like ```PieceColor``` and ```PieceClass``` from looking at them.  I only want to draw attention to one of them, ```PieceFile```.
+
+### PieceFile struct
+I found myself in an odd place where I really wanted to just treat everything like an object in true OO fashion, and my temptation to force the board into a 0-based array like a C/C++ programmer.  I opted for OO, but still there is an indexing issue.
+
+C# is still a 0-based index language, but the physical chess board is 1 based.  The smallest rank is 1.  The files run A-H, and we might as well also map them to 1-8 for consistency.  The ```ChessEngine``` however, is going to want moves in SAN format, and will provide them that way.  So, ```PieceFile``` is the bridge between both and can convert back and forth.  As I'll show later, this is built upon to create the ```MoveInformation``` object which returns a full move (e.g. "e2e4").
+
+Reduced version of the code.  What's really important is the struct verifies and throws if the file is not valid.  So once you have a ```PieceFile``` you at least know it's pointing to a valid file.
+```cs
+public struct PieceFile
+{
+    // Init with a character (a-h)
+    public PieceFile(char file);
+    // Init with an index (1-8)
+    public PieceFile(int file);
+    // Init with another PieceFile (copy constructor)
+    public PieceFile(PieceFile oldFile);
+
+    // Return as char or string (with one char in it)
+    public override string ToString();
+    public char File { get; }
+
+    // Return as int (1-8)
+    public int ToInt();
+    
+    // For comparision support
+    public override bool Equals(System.Object obj);
+    public override int GetHashCode();
+    public static bool operator ==(PieceFile p1, PieceFile p2);
+    public static bool operator !=(PieceFile p1, PieceFile p2);
+}
+```
+
+The other handy feature is you don't have to know or care what ```int``` is mapped to what file.  Though I constantly comment it in the code, you don't need to know.  For example...
+```cs
+PieceFile gTargetFile = new PieceFile('g');
+PieceFile cTargetFile = new PieceFile('c');
+PieceFile startFile;
+PieceFile endFile;
+
+if (targetFile == gTargetFile)
+{
+    startFile = new PieceFile('h');
+    endFile = new PieceFile('f');
+}
+```
+
+## Back To ChessGame
+At this point I have a class that providesa surface to the Forms, and owns and coordinates the other objects in the game either directly or indirectly (e.g.board, pieces, moves, engine, etc).  Moves can flow from both the engine and the UI....but there is one more big thing this class does, and that's verify legality of moves, contents of squares, if squares are in check, etc.
+
+### Legal Moves Only Please
+From the UI side, I have to do my own validation.  This means once a user clicks on the screen, I have to
+
+* Translate that (x, y) to a board square (if any)
+* Check if that square has one of the player's pieces
+* Calculate the various legal moves for that piece and store them
+* Wait to see if one of those moves is selected
+
+I'll cover the translation with the view, for now assume we're down to the square with a piece we need moves for.  I want to cover one of the pieces to show how you can factor the code in C#.
+
+I've stripped out some comments, see the [original](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/ChessGame.cs) file for all that.  Minus comments, the code is pretty short to get all legal moves for a bishop.
+```cs
+private static List<ChessBoard.BoardSquare> GetLegalMoves_Bishop(ChessPiece piece, ChessBoard board)
+{
+    List<ChessBoard.BoardSquare> moves = new List<ChessBoard.BoardSquare>();
+    // Check each linear direction (away from piece as center)
+    CheckLinearTargets(piece, 1, 1, board, moves);
+    CheckLinearTargets(piece, 1, -1, board, moves);
+    CheckLinearTargets(piece, -1, 1, board, moves);
+    CheckLinearTargets(piece, -1, -1, board, moves);
+    return moves;
+}
+```
+
+Now, of course, ```CheckLinearTargets()``` hides a lot of work, but it's also reusable.  In fact the same methods are used in the Rook and Queen pieces as well.  What is it?
+
+It's a ```delegate``` and here is the definition.  The offsets are in relation to the piece.
+```cs
+private delegate void CheckPieceTargets(ChessPiece p, int fileOffset,
+    int rankOffset, ChessBoard board, List<ChessBoard.BoardSquare> validMoves);
+```
+
+Now the version the bishop uses is here...minus some comments.  As you can see the offsets are followed until either the end of the board is reached, or until a piece is encountered.  If it's an opponent piece, it's a valid move, otherwise it is not.
+```cs
+private static CheckPieceTargets CheckLinearTargets = (p, fileDelta, rankDelta, b, m) =>
+{
+    int startCol = p.File.ToInt();
+    int startRow = p.Rank;
+    int endCol = startCol + fileDelta;
+    int endRow = startRow + rankDelta;
+
+    // As long as we're still on the board...
+    while (ChessBoard.BoardSquare.IsValid(endCol, endRow))
+    {
+        bool occupied;
+        if (SquareIsFreeOrContainsOpponent(endCol, endRow, b, p.Color, out occupied))
+        {
+            m.Add(new ChessBoard.BoardSquare(new PieceFile(endCol), endRow));
+            if (occupied) // Must be an opponent, so this move is valid
+            {
+                break;  // stop though, no more can be valid along this path
+            }
+        }
+        else
+        {
+            break;
+        }
+        endCol += fileDelta; // advance along our 'slope'
+        endRow += rankDelta;
+    }
+}
+```
+
+The cool part is the rook is just as trivial (minus comments)
+```cs
+private static List<ChessBoard.BoardSquare> GetLegalMoves_Rook(ChessPiece piece, ChessBoard board)
+{
+    List<ChessBoard.BoardSquare> moves = new List<ChessBoard.BoardSquare>();
+    // Check each linear direction (away from piece as center)
+    // Just like a bishop, but the slope is different
+    CheckLinearTargets(piece, 0, 1, board, moves);
+    CheckLinearTargets(piece, 0, -1, board, moves);
+    CheckLinearTargets(piece, 1, 0, board, moves);
+    CheckLinearTargets(piece, -1, 0, board, moves);
+    return moves;
+}
+```
+
+## Summary
+Those are the important pieces of the ```ChessGame``` object.  It does a few main things...
+
+* Is the interaction point from the ```Form```
+* Holds the "data" (```ChessBoard```)
+* Holds the "view" (we'll get to it)
+* Holds the "engine" and hooks into it's events to talk over UCI
+* Provides legality checks for moves
+
+### Next Up: ChessBoard & ChessPieces
+Mostly ```ChessBoard```, as it turns out the ```ChessPiece``` is almost trivial in the OO scheme I have.  The board is far more interesting, and acts heavily upon the ```ChessPieces``` so they go together.
