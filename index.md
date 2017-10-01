@@ -19,7 +19,7 @@ Thank you for visiting!  Here you will find posts related to my open source proj
       <h2><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h2>
 
       <div class="entry">
-        {{ post.content | strip_html | truncatewords:100 }}
+        {{ post.excerpt | strip_html }}
       </div>
 
       <h4><a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Read More</a></h4>

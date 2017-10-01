@@ -3,6 +3,7 @@ layout: default
 title: "01: All Pawns Must Die"
 date:   2017-09-29 15:00:00 -0700
 categories: coding csharp game chess uci
+excerpt: "All Pawns Must Die is a simple GUI for chess engines over UCI. In this first post, I'll give an overview of the problem, and the basic parts I'll need to solve it.  In future posts, I'll go through more specific pieces of the design."
 author: "manixaist"
 ---
 

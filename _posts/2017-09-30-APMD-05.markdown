@@ -1,0 +1,95 @@
+---
+layout: default
+title: "[APMD 05]: ChessBoard & ChessPiece"
+date: 2017-09-30 21:05:00 -0700
+categories: coding csharp game chess uci
+excerpt: "These two objects make up the meat and potatoes of the chess game code."
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+* [03: UCI Chess Engine Wrapper](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-03.html)
+* [04: ChessGame, The Data...Sorta](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-04.html)
+
+## ChessBoard and ChessPiece
+These two objects make up a large portion of the "chess game" code.  It could be dropped into another project and reused with little to no changes (well a C# project anyway).  ```ChessGame``` has some knowledge of ```Forms``` and the view will ultimately have some knowledge of some rendering API (and ```Form```), and the ```ChessEngine``` is tied to UCI pretty tightly.
+
+In contrast, ```ChessBoard``` and ```ChessPiece``` are pure constructs for the application and only really have knowledge internal to the problem.  E.g. it's reusable for another chess program (potentially), but not reusable the way a generic ```ListView``` object is.  If, for example, you wanted to make a console version, you could drop those in and lose ```Forms``` entirely.
+
+### ChessPiece
+I'll start with ```ChessPiece``` because it's the simpler of the two by far.  It really just wraps exactly what you would expect if designing an object for a chess piece for a CompSci101 class.
+
+First how you'd use it:: This would create a white pawn, initially at e2.
+```cs
+ChessPiece newPiece;
+newPiece = new ChessPiece(PieceColor.White, 
+               PieceClass.Pawn, new PieceFile('e'), 2);
+```
+
+The methods are the actions one can take with a ```ChessPiece``` and they are...
+```cs
+// Sets a new location (no validation here)
+public void Move(PieceFile newFile, int newRank)
+// Sets a temp location (for testing moves, as ::Move
+// does have some side-effects (like a potential promotion)
+public void TempMove(PieceFile newFile, int newRank)
+public void ResetTempMove()
+
+// Promotion happens after the initial move to handle
+// cases like a pawn promoting to a Queen, and now has
+// very different scope post-move than pre-move
+public void PromoteOnNextMove(PieceClass newLotInLife)
+// Only useful for pawns, and when going back in time
+// e.g. taking back a move
+public void Demote()
+```
+
+Coupled with those actions, the piece holds on to several properties of a chess piece one might care about...
+
+```cs
+public PieceColor Color { get; }
+public PieceClass Job { get; }
+public int Rank { get; }
+public PieceFile File { get; }
+// Ever moved? Important for castling and pawn moves
+public bool Deployed { get; set; }
+// Once captured, we can just stop drawing it, and ignore
+// it for logic purposes
+public bool Visible { get; set; }
+// Holds state for the view to decide how to highlight
+public bool Highlight { get; set; }
+```
+
+That's it.  They are dumb objects that hold onto state for the most part.
+
+### ChessBoard
+slightly more sophisticated is the ```ChessBoard``` object.  Just as the ```ChessGame``` owns and manages the ```ChessBoard```, the board owns and manages the ```ChessPieces```.
+
+I won't show every method, look [here](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/ChessBoard.cs) for the complete code.  The important public methods exposed are...
+```cs
+public void NewGame()
+public void NewPosition(string fen)
+public void MovePiece(ref MoveInformation moveInfo)
+public void PromotePiece(/*redacted for length*/)
+public ChessPiece FindPieceAt(PieceFile file, int rank)
+public void RevertLastMove()
+```
+Most of these look like things we've already discussed or shown in a logical box.  The last 2 are new, but self-explanatory.  ```FindPieceAt()``` gets a piece at a location on the board and ```RevertLastMove()``` reverts the last move applied to the board.
+
+If you look through the code, most of this should look like fairly straight forward implementation of the logic already discussed.
+
+### ChessBoard::MovePiece
+Take a look at [```ChessBoard::MovePiece```](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/ChessBoard.cs#L386).  At this layer the move is assumed legal (remember the ```ChessGame``` class verifies legality) so we're just applying it.  The board only needs to account for additional implied moves (e.g. castling)and the only capture that doesn't collide with a piece, en-passant.  Then it checks if it's a normal capture, and applies the move to the piece(s).
+
+Now the board knows all it needs to update its state, and if you recall, the chess engine will shortly need it in the form of a FEN.  Which leads to the next topic...the FenParser static class.  This is the class that does the FEN calculations to keep us up to date with the engine.
+
+## Summary
+The ```ChessBoard``` and ```ChessPiece``` objects implement just what you'd expect, and comprise the data that ultimately drives the view.  Updating these objects is driven by either the engine, and/or the player via input from the Form->ChessGame->ChessBoard.
+
+### Next Up: FenParser
+The ```FenParser``` static class deals with FEN strings and helps produce new strings based on a starting string + a move.

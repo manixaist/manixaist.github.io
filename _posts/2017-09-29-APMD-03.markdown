@@ -3,6 +3,7 @@ layout: default
 title: "[APMD 03]: UCI Chess Engine Wrapper"
 date:   2017-09-29 23:24:00 -0700
 categories: coding csharp game chess uci
+excerpt: "UCI ChessEngine Wrapper Let's zoom in one more time on the box from last post for the ChessEngine; if you've been waiting for something that looks like code, then we're almost there.  First, remember some basic requirements from last time."
 author: "manixaist"
 ---
 

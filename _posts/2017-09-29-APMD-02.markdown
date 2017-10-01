@@ -3,6 +3,7 @@ layout: default
 title: "[APMD 02]: Componentization"
 date:   2017-09-29 21:12:00 -0700
 categories: coding csharp game chess uci
+excerpt: "In this post, I'm going to talk about organizing the application so I can properly componentize it."
 author: "manixaist"
 ---
 

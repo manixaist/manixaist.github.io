@@ -3,6 +3,7 @@ layout: default
 title: "[APMD 04]: ChessGame, The Data...Sorta"
 date:   2017-09-30 17:19:00 -0700
 categories: coding csharp game chess uci
+excerpt: "Last time I mentioned the data portion was up next, as was the ChessGame block.  This isn't 100% accurate, but I'm treating the ChessGame as part of the data for discussions here. "
 author: "manixaist"
 ---
 
