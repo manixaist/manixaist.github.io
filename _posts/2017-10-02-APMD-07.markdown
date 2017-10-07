@@ -1,0 +1,113 @@
+---
+layout: default
+title: "[APMD 07]: ChessView"
+date: 2017-10-02 00:13:00 -0700
+categories: coding csharp game chess uci
+excerpt: "The last major portion I want to talk about is the view.  If you think about it, the rest of the code was just to get to this point.  The view is what renders the game, and that's the essence of the GUI (minus the menus and Form framework)."
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+* [03: UCI Chess Engine Wrapper](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-03.html)
+* [04: ChessGame, The Data...Sorta](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-04.html)
+* [05: ChessBoard & ChessPiece](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-05.html)
+* [06: FenParser](http://manixaist.com/coding/csharp/game/chess/uci/2017/10/01/APMD-06.html)
+
+## ChessView
+The last major portion I want to talk about is the view.  If you think about it, the rest of the code was just to get to this point.  The view is what renders the game, and that's the essence of the GUI (minus the menus and Form framework).
+
+The point of the view is to separate the "look" from the "data".  In this case the data is the ```ChessBoard``` class.  It holds state such as, what pieces are still active and where they are, what move it is, what squares should be highlighted as legal, etc.  The "look" is what you see on the screen...e.g.
+
+![](/images/APMD_view.png)
+
+So let's have a look at the interface.
+```cs
+interface IChessBoardView
+{
+    // Sets images for the pieces
+    void SetBitmapImages(Bitmap pieceImages, Size pieceSize);
+    
+    // Drawing
+    void Invalidate();
+    void Render(Graphics g);
+    void HighlightSquare(PieceFile file, int rank);
+    void HighlightSquares(ref List<ChessBoard.BoardSquare> squares);
+    void ClearHiglightedSquares();
+
+    // Translate coordinates
+    ChessPiece GetPiece(int x, int y);
+    ChessBoard.BoardSquare GetSquare(int x, int y);
+
+    // Properties
+    Point Offset { get; set; }
+    Size Dimensions { get; set; }
+    Rectangle BoardRect { get; }
+
+    // THE DATA
+    ChessBoard ViewData { get; set; }
+}
+```
+
+I rearranged the methods a bit, but in this interface there is one Property for setting the ```data``` and then several other Methods and Properties to deal with the view of that data.
+
+Like everything else in V1 I have left this as simple as I could.  It definitely has room for improvement, especially decoupling the Graphics object from the main interface.  The data is set more or less with a Dependency-Injection pattern, the the drawing API isn't.  Whoops.
+
+The idea here, in the larger pattern, is for this class to not care one bit about how a ```ChessBoard``` operates, or how it determines a move is legal, or what a knight is and how it moves, it just knows how to "draw" one given one.
+
+### How Do I Draw Something I Don't Know About?
+Well, the data has to provide the "data" you need to draw it, at least the basics.  For example, it must differentiate piece types, even if the view doesn't know how the pieces move.  Somewhere, it must have a mapping of that type to some image (or character, or visual data) to use when encountering that type.
+
+Let's peek at [the Render Method](https://github.com/manixaist/AllPawnsMustDie/blob/v1.0/AllPawnsMustDie/core/ChessBoardView.cs#L247) and look just at the pieces.
+
+In fact, just the white ones (black works the same)
+```cs
+// Draw the pieces (orientation does matter)
+foreach (ChessPiece piece in data.WhitePieces)
+{
+    DrawPiece(g, piece);
+}
+```
+
+With no other information, you can see this is iterating over a set of ```ChessPiece``` objects provided by the ```data```.  For each one, a helper is being called to do the drawing, so let's look there....
+
+```cs
+private void DrawPiece(Graphics g, ChessPiece piece)
+{
+    if (piece.Visible)
+    {
+        Rectangle pieceRect = GetRect(piece.File, piece.Rank);
+        if (piece.Highlight)
+        {
+            g.FillRectangle(Brushes.Yellow, pieceRect);
+        }
+
+        if (chessPieceImageMap == null)
+        {
+            // Find the screen rect for the piece and 'draw' it
+            g.DrawString(PieceChar(piece).ToString(), stringFont, Brushes.Black, pieceRect, stringFormat);
+        }
+        else
+        {
+            Bitmap b = chessPieceImageMap[GetPieceImageKey(piece.Job, piece.Color)];
+            b.MakeTransparent(Color.Magenta);
+            g.DrawImage(b, pieceRect);
+        }
+    }
+}
+```
+
+In the outer check, it just validates the piece is visible.  Inside, you can see the ```ChessPiece``` (provided by the data) provides its RECT (pixel based) based on its location on the board (non-pixel based) by use of a helper method ```GetRect```.  This is how we translate from a data world to a view world.
+
+The second part is what to draw.  In this method there are actually 2 options; if there is no Bitmap image map set, then it falls back to rendering a unicode text character.  If there is a map, it looks up the image by type.  Remember above I said you need a way to map the type to some visual data, even if the view doesn't care what it is.
+
+## Summary
+Views can be used to encapsulate what a set of data "looks" like.  You could even have multiple views on a single set of data; this is very common.  It's another example of decoupling.
+
+### Next Up: Post-Mortem
+Not a component of the application, but lastly for V1 I want to go through a quick post-mortem and try to identify more design issues that can be addressed before adding any more features.  There is already one example above that could use some polishing :).
+
