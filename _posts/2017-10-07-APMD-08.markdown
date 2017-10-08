@@ -1,0 +1,95 @@
+---
+layout: default
+title: "[APMD 08]: Postmortem"
+date: 2017-10-07 00:13:00 -0700
+categories: coding csharp game chess uci
+excerpt: "All the stuff I messed up...."
+author: "manixaist"
+---
+
+# All Pawns Must Die...Eventually
+[All Pawns Must Die](https://github.com/manixaist/AllPawnsMustDie) is a simple chess GUI for UCI engines.  This is an ongoing series of posts covering the design and code.
+
+### Previous Entries
+* [01: All Pawns Must Die](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-01.html)
+* [02: Componentization](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-02.html)
+* [03: UCI Chess Engine Wrapper](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/29/APMD-03.html)
+* [04: ChessGame, The Data...Sorta](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-04.html)
+* [05: ChessBoard & ChessPiece](http://manixaist.com/coding/csharp/game/chess/uci/2017/09/30/APMD-05.html)
+* [06: FenParser](http://manixaist.com/coding/csharp/game/chess/uci/2017/10/01/APMD-06.html)
+* [07: ChessView](http://manixaist.com/coding/csharp/game/chess/uci/2017/10/02/APMD-07.html)
+
+## Postmortem
+Just like reviewing a chess game can help you see where you went wrong (or could have done better), reviewing your software projects can lead to improvements as well.  For example...
+
+* Process - For team projects, what were the integration points?  Did they go well?  Were there bottlenecks that didn't need to exist?  Were responsibilities clear, etc.
+* Design - How far from the initial design was the final implementation?  Was that intentional if vastly different?  In practice did issues arise from the design choices?  Could classes or modules be further refined?
+* Testing - You added tests right?  How did that go?  Were any areas "untestable"?  Can you fix that via decoupling or injecting a dependency in the "product" code?
+* Documentation - Is it sufficient?  Is it manually generated?  Can it be automated (e.g doxygen or similar)
+
+### What If I Never Touch This Again?  Why Bother?
+Mostly to keep from making the same mistakes over and over.  Even if you never touch the code again, you can still learn from mistakes you made, or spot areas you could have done better.
+
+### When Do I Do It?
+IMHO, just like writing or other creative works, put it away for a bit.  Don't do it the next day or week you finished up the latest version.  Especially for hobbyist projects.  It might not always be in your control otherwise.  Why the wait?
+
+* You can get tunnel vision on problems and solutions, stepping away helps combat this
+* Is your code still readable after not looking at it for a while?
+* Do your comments make sense?  Do you have enough comments that are meaningful?
+
+If you can't follow your own code after leaving it a bit, there is likely an issue that needs addressing.  Not to sound contradictory, but don't wait too *long* either.  You do want the project fresh enough in your mind to recall some of these issues.  Remember to fall back on notes taken during development (and/or bugs/issues raised) for things to look at.
+
+For this post, I'm going to focus on portions of design and testing; or the parts of those I think are most interesting.
+
+## Design
+For an initial design review, I went through each of the core classes and asked 3 questions
+
+1. Is the SRP (Single Responsibility Principle) maintained?
+2. Is the class data properly encapsulated?
+3. Are there dependencies that need/could be decoupled?
+
+I won't go over every class in this post (I plan on an incremental release), but some interesting points as examples...
+
+### UCIChessEngine
+There are 2 big glaring problems with this class.  The first, is the UCI specific commands are leaked outside of the class.  There is no reason for this, and it could be encapsulated within, but it's really more a minor issue.  The larger problem is the process class.
+
+The ```Process``` class internally loaded brings in that dependency.  Using it as is makes it harder to test (and replace) since we're locked into that class and do not control it.  We can fix both problems with one stone by hiding this dependency behind an interface.  Then, replacing it either for testing with a mock, or in the future if it becomes needed becomes trivial.
+
+I just need to make sure the core functionality is maintained.  Some pseudocode for a minimal interface
+
+```cs
+interface IChessEngineProcess
+{
+    event EventHandler<DataReceivedEventArgs> OnDataReceived;
+
+    void Start(string fullPathToExe)
+    
+    StreamWriter {get;}
+}
+```
+
+### ChessPiece
+Here's a smaller example.  The ```ChessPiece``` class is holding onto view state.  The ```Highlight``` property is just a bool holding state for the view.  It's a relic of some older version of the code that was never caught.  The fix is easy, just remove it.  The functionality can be replaced by a call to the view directly already (no code changes needed) and by altering the calling code in the game class.
+
+### ChessBoardView
+Lastly for the post, the view has a few dependencies we can easily lose.
+
+1. Remove the Invalidate() method.  The caller can do this in the ```Forms``` case.
+2. Change Render() to pass an ```object``` rather than ```Graphics```.  This way, when we want to use something else to draw, we can pass it in since it is ensured to also be an object under C#.
+
+*As an aside, #2 felt a bit wrong at first coming from C++.  It seems like cheating like passing a ```void``` to hide a type, but all objects are ```objects``` so it can never be unsafe.  Whether it's right might be up for debate.*
+
+## Testing
+The best example here I already talked about.  The ```Process``` decoupling in ```UCIEngine```.   Once that's done, testing the engine class will become much easier.
+
+Decoupling ```Graphics``` helps less for testing, but that doesn't mean it isn't still a good idea.
+
+## Summary
+The best of us make mistakes, and stuff happens during development.  Take the time to review your work and the way you worked so you're not stuck in the same mistakes over and over.
+
+### Next Up: Nothing
+That's it for V1!  I hope to make some of these design fixes/improvements in an incremental release, then think about new features.  Or I may move on to something else!
+
+Thanks for reading!
+
+
